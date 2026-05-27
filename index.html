@@ -4,19 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>J.A.R.V.I.S. Documents - HUD Interface</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Tech & Sci-Fi -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- DOCX (CORREGIDO: CDN estable + fallback) -->
-    <script src="https://unpkg.com/docx@8.5.0/build/docx.js"></script>
-    <!-- Excel XLSX -->
+    <!-- Librerías de generación de documentos -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <!-- PowerPoint PPTXGenJS -->
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <!-- NUEVA LIBRERÍA PARA WORD: html-docx-js (más ligera y fiable) -->
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
 
     <style>
         :root {
@@ -24,114 +20,56 @@
             --jarvis-blue-dark: #005a70;
             --jarvis-blue-glow: rgba(0, 240, 255, 0.25);
             --jarvis-orange: #ff9d00;
-            --jarvis-red: #ff3c3c;
             --bg-dark: #020813;
             --panel-bg: rgba(4, 15, 30, 0.8);
             --panel-border: rgba(0, 240, 255, 0.25);
         }
-
         body {
             font-family: 'Rajdhani', sans-serif;
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 90, 112, 0.2) 0%, transparent 80%),
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 100%, 100% 4px, 6px 100%;
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 90, 112, 0.2) 0%, transparent 80%),
+                              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 100%, 100% 4px;
             color: #e2f1f5;
             overflow-x: hidden;
-            letter-spacing: 0.5px;
         }
-
         .tech-font { font-family: 'Share Tech Mono', monospace; }
         .hud-font { font-family: 'Orbitron', sans-serif; }
-
         .hud-panel {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
-            position: relative;
             backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            transition: all 0.3s;
         }
-        .hud-panel:hover {
-            border-color: rgba(0, 240, 255, 0.5);
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
-        }
-        .hud-panel::before {
+        .hud-panel::before, .hud-panel::after {
             content: '';
             position: absolute;
-            top: -1px;
-            left: -1px;
             width: 12px;
             height: 12px;
-            border-top: 2px solid var(--jarvis-blue);
-            border-left: 2px solid var(--jarvis-blue);
+            border-color: var(--jarvis-blue);
+            border-style: solid;
         }
-        .hud-panel::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            right: -1px;
-            width: 12px;
-            height: 12px;
-            border-bottom: 2px solid var(--jarvis-blue);
-            border-right: 2px solid var(--jarvis-blue);
-        }
-
-        @keyframes rotateOuter {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes rotateInner {
-            0% { transform: rotate(360deg); }
-            100% { transform: rotate(0deg); }
-        }
-        @keyframes pulseGlow {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.08); opacity: 0.5; }
-        }
-        .core-outer { animation: rotateOuter 25s linear infinite; }
-        .core-inner { animation: rotateInner 15s linear infinite; }
+        .hud-panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .hud-panel::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+        .message-jarvis { border-left: 4px solid var(--jarvis-blue); background: rgba(0, 240, 255, 0.03); }
+        .message-user { border-right: 4px solid var(--jarvis-orange); background: rgba(255, 157, 0, 0.03); }
+        .cli-output { background: rgba(2, 6, 15, 0.95); border: 1px solid rgba(0, 240, 255, 0.15); }
+        .drag-active { border-color: var(--jarvis-blue) !important; background: rgba(0, 240, 255, 0.1) !important; }
+        @keyframes pulseGlow { 0%,100%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.08);opacity:0.5;} }
         .core-pulse { animation: pulseGlow 3s ease-in-out infinite; }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(4, 15, 30, 0.5); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(4,15,30,0.5); }
         ::-webkit-scrollbar-thumb { background: var(--jarvis-blue-dark); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--jarvis-blue); }
-
-        .message-jarvis {
-            border-left: 4px solid var(--jarvis-blue);
-            background: rgba(0, 240, 255, 0.03);
-            box-shadow: inset 5px 0 10px rgba(0, 240, 255, 0.01);
-        }
-        .message-user {
-            border-right: 4px solid var(--jarvis-orange);
-            background: rgba(255, 157, 0, 0.03);
-            box-shadow: inset -5px 0 10px rgba(255, 157, 0, 0.01);
-        }
-        .cli-output {
-            background: rgba(2, 6, 15, 0.95);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            color: #a5f3fc;
-        }
-        .drag-active {
-            border-color: var(--jarvis-blue) !important;
-            background: rgba(0, 240, 255, 0.1) !important;
-            box-shadow: 0 0 20px var(--jarvis-blue-glow);
-        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-3 md:p-6 select-none">
+<body class="min-h-screen flex flex-col p-3 md:p-6">
 
     <header class="w-full mb-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-cyan-900/60 pb-4">
         <div class="flex items-center gap-4">
             <div class="relative w-16 h-16 flex items-center justify-center">
-                <svg class="absolute w-full h-full core-outer text-cyan-400 opacity-60" viewBox="0 0 100 100">
+                <svg class="absolute w-full h-full text-cyan-400 opacity-60" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="12 12" />
-                </svg>
-                <svg class="absolute w-4/5 h-4/5 core-inner text-cyan-300 opacity-80" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="35" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="15 6 4 6" />
                 </svg>
                 <div class="w-6 h-6 rounded-full bg-cyan-400 core-pulse shadow-[0_0_15px_#00f0ff] flex items-center justify-center">
                     <div class="w-3 h-3 rounded-full bg-white"></div>
@@ -139,83 +77,82 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v2.8</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v3.0</span>
                 </h1>
                 <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
-            <div class="flex items-center gap-1.5">
-                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span>
-                <span>REACTOR: EN LÍNEA</span>
-            </div>
+            <div class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span><span>REACTOR: EN LÍNEA</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
-            <div class="flex items-center gap-1.5"><i class="fa-solid fa-key"></i><span>API ACTIVA: <span id="active-key-label" class="text-amber-400">KEY_01</span></span></div>
+            <div><i class="fa-solid fa-key"></i> API: <span id="active-key-label" class="text-amber-400">KEY_01</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
-            <div class="flex items-center gap-1.5"><i class="fa-solid fa-microchip"></i><span>MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH</span></span></div>
-            <div class="h-4 w-[1px] bg-cyan-900/60 font-bold text-cyan-700">|</div>
-            <div class="flex items-center gap-1"><i class="fa-solid fa-shield-halved text-cyan-400"></i><span class="text-[10px] text-cyan-500">FAILOVER COGNITIVO</span></div>
+            <div><i class="fa-solid fa-microchip"></i> MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH</span></div>
         </div>
     </header>
 
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        <!-- COLUMNA IZQUIERDA -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Columna Izquierda -->
         <section class="lg:col-span-4 flex flex-col gap-4">
-            <div class="hud-panel p-4 rounded flex flex-col gap-3">
-                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5 flex items-center justify-between"><span><i class="fa-solid fa-sliders mr-2"></i>Consola del Sistema</span><span class="text-[10px] text-cyan-600 tech-font">TELEMETRÍA</span></h3>
-                <div class="grid grid-cols-2 gap-2 tech-font text-xs">
-                    <div class="bg-slate-950/40 p-2 rounded border border-cyan-950"><span class="text-cyan-600 block text-[9px] uppercase">Peticiones Totales</span><span id="stat-requests" class="text-base text-cyan-300 font-bold">0</span></div>
-                    <div class="bg-slate-950/40 p-2 rounded border border-cyan-950"><span class="text-cyan-600 block text-[9px] uppercase">Rendimiento Latencia</span><span id="stat-latency" class="text-base text-cyan-300 font-bold">0ms</span></div>
-                    <div class="bg-slate-950/40 p-2 rounded border border-cyan-950"><span class="text-cyan-600 block text-[9px] uppercase">Archivos Exportados</span><span id="stat-files" class="text-base text-cyan-300 font-bold">0</span></div>
-                    <div class="bg-slate-950/40 p-2 rounded border border-cyan-950"><span class="text-cyan-600 block text-[9px] uppercase">Fallos de API Key</span><span id="stat-failures" class="text-base text-rose-400 font-bold">0</span></div>
+            <div class="hud-panel p-4 rounded">
+                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-solid fa-sliders mr-2"></i>Consola del Sistema</h3>
+                <div class="grid grid-cols-2 gap-2 tech-font text-xs mt-3">
+                    <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Peticiones</span><span id="stat-requests" class="text-base text-cyan-300 font-bold">0</span></div>
+                    <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Latencia</span><span id="stat-latency" class="text-base text-cyan-300 font-bold">0ms</span></div>
+                    <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Archivos</span><span id="stat-files" class="text-base text-cyan-300 font-bold">0</span></div>
+                    <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Fallos API</span><span id="stat-failures" class="text-base text-rose-400 font-bold">0</span></div>
                 </div>
-                <div class="flex flex-col gap-1 mt-1">
-                    <span class="text-[10px] text-cyan-500 uppercase tracking-widest font-bold">Registro de Eventos:</span>
-                    <div id="terminal-log" class="cli-output h-24 p-2 rounded text-[10px] tech-font overflow-y-auto flex flex-col gap-0.5">
-                        <div class="text-cyan-500">[00:00:00] Inicializando subsistema J.A.R.V.I.S. de carga asíncrona...</div>
-                        <div class="text-emerald-400">[00:00:01] Librerías de generación e importación alineadas.</div>
-                        <div class="text-cyan-400">[00:00:01] Algoritmo jerárquico de grafos CXL cargado.</div>
-                    </div>
-                </div>
+                <div class="mt-2"><span class="text-[10px] text-cyan-500">Registro de Eventos:</span><div id="terminal-log" class="cli-output h-24 p-2 rounded text-[10px] tech-font overflow-y-auto mt-1"></div></div>
             </div>
 
-            <div class="hud-panel p-4 rounded flex flex-col gap-3">
-                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-regular fa-image mr-2"></i>Entrada Multimodal (Imagen)</h3>
-                <p class="text-xs text-cyan-500">Suministre flujogramas, fotos o esquemas para que J.A.R.V.I.S. estructure los nodos lógicos automáticamente.</p>
-                <div id="drop-zone" class="border border-dashed border-cyan-800/80 bg-cyan-950/10 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-cyan-950/20">
+            <div class="hud-panel p-4 rounded">
+                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-regular fa-image mr-2"></i>Entrada Multimodal</h3>
+                <div id="drop-zone" class="border border-dashed border-cyan-800/80 bg-cyan-950/10 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all mt-2">
                     <input type="file" id="image-input" accept="image/*" class="hidden" />
-                    <div id="drop-zone-content" class="text-center flex flex-col items-center"><i class="fa-solid fa-cloud-arrow-up text-2xl text-cyan-400 mb-2 animate-pulse"></i><span class="text-xs font-semibold text-cyan-300">Arrastra aquí una imagen o haz clic</span><span class="text-[10px] text-cyan-600 mt-1">PNG, JPG o WEBP (Máx. 5MB)</span></div>
-                    <div id="preview-container" class="hidden w-full flex-col items-center gap-2"><img id="image-preview" src="" alt="Previsualización" class="max-h-32 object-contain border border-cyan-400 rounded-md shadow-[0_0_10px_rgba(0,240,255,0.2)]" /><button type="button" id="remove-image-btn" class="text-[11px] bg-red-950/60 border border-red-800 text-red-400 px-3 py-1 rounded hover:bg-red-900/40 transition-colors tech-font flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> REMOVER IMAGEN</button></div>
+                    <div id="drop-zone-content" class="text-center"><i class="fa-solid fa-cloud-arrow-up text-2xl text-cyan-400 mb-2 animate-pulse"></i><span class="text-xs text-cyan-300">Arrastra imagen o haz clic</span></div>
+                    <div id="preview-container" class="hidden w-full flex-col items-center gap-2"><img id="image-preview" class="max-h-32 border border-cyan-400 rounded-md" /><button id="remove-image-btn" class="text-[11px] bg-red-950/60 border border-red-800 text-red-400 px-3 py-1 rounded"><i class="fa-solid fa-trash-can"></i> Remover</button></div>
                 </div>
             </div>
 
-            <div class="hud-panel p-4 rounded flex flex-col gap-3 flex-1 min-h-[220px]">
-                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5 flex justify-between items-center"><span><i class="fa-solid fa-folder-tree mr-2"></i>Bóveda de Archivos</span><span id="vault-count" class="text-xs bg-cyan-950 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-800 tech-font">0 ARCHIVOS</span></h3>
-                <div id="vault-empty-state" class="flex-1 flex flex-col items-center justify-center text-center opacity-40 py-8"><i class="fa-solid fa-box-open text-3xl text-cyan-500 mb-2"></i><p class="text-xs">Bóveda vacía. Comande un archivo para cargarlo.</p></div>
-                <div id="vault-list" class="hidden flex-col gap-2 overflow-y-auto max-h-[250px] pr-1"></div>
+            <div class="hud-panel p-4 rounded flex-1">
+                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5 flex justify-between"><span><i class="fa-solid fa-folder-tree mr-2"></i>Bóveda</span><span id="vault-count" class="text-xs bg-cyan-950 px-1.5 py-0.5 rounded">0 ARCHIVOS</span></h3>
+                <div id="vault-empty-state" class="flex flex-col items-center justify-center opacity-40 py-8"><i class="fa-solid fa-box-open text-3xl"></i><p class="text-xs">Bóveda vacía</p></div>
+                <div id="vault-list" class="hidden flex-col gap-2 overflow-y-auto max-h-[250px]"></div>
             </div>
         </section>
 
-        <!-- COLUMNA DERECHA: CHAT PRINCIPAL -->
+        <!-- Columna Derecha: Chat -->
         <section class="lg:col-span-8 flex flex-col gap-4">
             <div class="hud-panel rounded flex flex-col flex-1 h-[650px] lg:h-[calc(100vh-160px)]">
                 <div class="bg-slate-950/85 px-4 py-3 border-b border-cyan-900/50 flex justify-between items-center">
-                    <div class="flex items-center gap-2"><span class="relative flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-500"></span></span><div><span class="hud-font text-xs font-bold uppercase tracking-wider text-cyan-400 block">J.A.R.V.I.S. COGNITIVE CHAT</span><span class="text-[10px] text-cyan-500 tech-font uppercase">Conexión satelital directa establecida</span></div></div>
-                    <div class="flex items-center gap-1.5"><span class="text-[10px] text-cyan-600 font-bold tech-font hidden sm:inline">ACCESO DIRECTO:</span><select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400"><option value="">-- Selecciona una acción rápida --</option><option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Crear Mapa Conceptual: Ciclo SDLC (CXL)</option><option value="Crea un informe de ventas en Word con formato ejecutivo.">Crear Reporte Ejecutivo (Word)</option><option value="Genera un desglose de presupuesto financiero en Excel con 3 columnas de ejemplo.">Crear Presupuesto (Excel)</option><option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en el 2026.">Crear Diapositivas (PowerPoint)</option><option value="Analiza esta imagen y elabora un archivo .txt con un resumen exhaustivo de su estructura.">Analizar Imagen & Generar TXT</option></select></div>
+                    <div class="flex items-center gap-2"><span class="relative flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-500"></span></span><span class="hud-font text-xs font-bold text-cyan-400">J.A.R.V.I.S. COGNITIVE CHAT</span></div>
+                    <select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300">
+                        <option value="">-- Acción rápida --</option>
+                        <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Mapa SDLC (CXL)</option>
+                        <option value="Crea un informe de ventas en Word con formato ejecutivo.">Reporte ejecutivo (Word)</option>
+                        <option value="Genera un desglose de presupuesto financiero en Excel con 3 columnas de ejemplo.">Presupuesto (Excel)</option>
+                        <option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en el 2026.">Diapositivas IA (PPT)</option>
+                    </select>
                 </div>
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
-                    <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3"><div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-robot text-xs"></i></div><div class="flex-1 flex flex-col gap-1"><span class="hud-font text-[10px] font-bold text-cyan-400 tracking-wider">J.A.R.V.I.S.</span><p class="text-sm leading-relaxed">Un placer asistirle de nuevo, señor. He calibrado con éxito el motor de alineación jerárquica para mapas conceptuales **.cxl**. Los problemas de color negro y alineaciones han sido erradicados. ¿Desea que generemos un nuevo mapa conceptual optimizado sobre algún sistema o proceso, Sir?</p></div></div>
+                    <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>
+                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, he actualizado mi motor de generación de documentos. Ahora uso una librería más estable para archivos Word. ¿En qué puedo asistirle?</p></div>
+                    </div>
                 </div>
-                <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex items-center justify-between text-cyan-400 tech-font text-xs"><div class="flex items-center gap-2"><i class="fa-solid fa-circle-notch animate-spin text-sm text-cyan-400"></i><span id="loading-text">PROCESANDO DATOS CON LA API DE GEMINI...</span></div><span id="loading-timer" class="text-amber-400 font-bold">0.0s</span></div>
-                <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2 items-center"><div class="flex-1 relative"><textarea id="user-input" rows="1" class="w-full bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 pr-16 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none focus:border-cyan-400 resize-none max-h-24" placeholder="Comande a JARVIS... (ej. 'Crea un Excel de costos')"></textarea><span id="input-image-badge" class="hidden absolute right-3 top-1/2 -translate-y-1/2 bg-amber-500/20 border border-amber-600 text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold tech-font flex items-center gap-1"><i class="fa-regular fa-image"></i> IMAGEN</span></div><button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 hover:border-cyan-400 text-cyan-400 transition-all flex items-center justify-center shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"><i class="fa-solid fa-paper-plane"></i></button></form>
+                <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
+                <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2">
+                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Comande a JARVIS..."></textarea>
+                    <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
             </div>
         </section>
     </main>
 
-    <footer class="mt-4 border-t border-cyan-950 pt-2.5 flex flex-col md:flex-row justify-between items-center gap-2 tech-font text-[10px] text-cyan-600"><div>SISTEMA DE ASISTENCIA INTEGRAL DE STARK INDUSTRIES — CLASIFICADO Nivel 10</div><div class="flex items-center gap-3"><span>SINC: LOCALHOST:PORT_8080</span><div class="h-2 w-2 rounded-full bg-cyan-500 animate-pulse"></div><span>CONECTADO AL PROTOCOLO MULTIMODAL</span></div></footer>
+    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">SISTEMA J.A.R.V.I.S. — PROTOCOLO MULTIMODAL ACTIVO</footer>
 
     <script>
-        // POOL DE API KEYS
+        // ---------- CONFIGURACIÓN API ----------
         const API_KEYS_POOL = ["AIzaSyCm-F_ome5NCrGXnGJCTH_59SMRToSjaM8", "AIzaSyCv3zstg8kTPsMlWGs0nCpS_paVFIqfy78"];
         let activeKeyIndex = 0;
         let selectedBase64Image = null;
@@ -224,16 +161,15 @@
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
         let activeModelIndex = 0;
 
-        // SYSTEM PROMPT MEJORADO
-        const SYSTEM_PROMPT = `Actúas como J.A.R.V.I.S., sistema de IA sofisticado. Tu comportamiento debe ser sumamente educado, leal, asertivo, técnico y referirte al usuario como 'Señor' ('Sir'). CAPACIDAD EXCLUSIVA: Si el usuario solicita crear un documento, reporte, hoja de cálculo, diapositivas o mapa conceptual, debes proveer la estructura exacta usando tags holográficos. Instrucciones de marcado: 
-1. WORD: [START-WORD] { "title": "...", "subtitle": "...", "sections": [ {"heading":"...","paragraphs":["..."]} ] } [END-WORD]
-2. EXCEL: [START-EXCEL] { "sheetName":"...", "headers":["A","B"], "rows":[["d1","d2"]] } [END-EXCEL]
-3. PPT: [START-PPT] { "presentationTitle":"...", "slides":[{"title":"...","bullets":["..."]}] } [END-PPT]
-4. CXL (mapa conceptual jerárquico): [START-CXL] { "title":"...", "concepts":[{"id":"c1","label":"Raíz"}], "linkingPhrases":[{"id":"lp1","label":"conecta con"}], "connections":[{"from":"c1","to":"lp1"}] } [END-CXL]
-5. TXT: [START-TXT filename="nombre.txt"] texto plano [END-TXT]
-Genera información extremadamente detallada y profesional. Si hay imagen, analízala profundamente.`;
+        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de Tony Stark. Debes generar documentos usando etiquetas específicas. 
+        - WORD: [START-WORD]{"title":"...","subtitle":"...","sections":[{"heading":"...","paragraphs":["..."]}]}[END-WORD]
+        - EXCEL: [START-EXCEL]{"sheetName":"...","headers":["A","B"],"rows":[["v1","v2"]]}[END-EXCEL]
+        - PPT: [START-PPT]{"presentationTitle":"...","slides":[{"title":"...","bullets":["..."]}]}[END-PPT]
+        - CXL: [START-CXL]{"title":"...","concepts":[{"id":"c1","label":"Raíz"}],"linkingPhrases":[{"id":"lp1","label":"conecta"}],"connections":[{"from":"c1","to":"lp1"}]}[END-CXL]
+        - TXT: [START-TXT filename="archivo.txt"]contenido[END-TXT]
+        Genera respuestas detalladas y profesionales. Siempre refiérete al usuario como "Señor" o "Sir".`;
 
-        // DOM ELEMENTS
+        // Elementos DOM
         const activeKeyLabel = document.getElementById('active-key-label');
         const activeModelLabel = document.getElementById('active-model-label');
         const statRequests = document.getElementById('stat-requests');
@@ -257,140 +193,201 @@ Genera información extremadamente detallada y profesional. Si hay imagen, anal�
         const loadingTimer = document.getElementById('loading-timer');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
-        const inputImageBadge = document.getElementById('input-image-badge');
 
-        function logSystemEvent(message, colorClass = "cyan") {
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            const logEntry = document.createElement('div');
-            if (colorClass === "cyan") logEntry.className = "text-cyan-400";
-            else if (colorClass === "amber") logEntry.className = "text-amber-400 font-bold";
-            else if (colorClass === "red") logEntry.className = "text-red-400 font-bold animate-pulse";
-            else if (colorClass === "emerald") logEntry.className = "text-emerald-400";
-            logEntry.innerHTML = `[${timeStr}] ${message}`;
-            terminalLog.appendChild(logEntry);
+        function logEvent(msg, color="cyan") { 
+            const time = new Date().toTimeString().slice(0,8);
+            const div = document.createElement('div');
+            div.className = color==='red'?'text-red-400':(color==='emerald'?'text-emerald-400':'text-cyan-400');
+            div.innerText = `[${time}] ${msg}`;
+            terminalLog.appendChild(div);
             terminalLog.scrollTop = terminalLog.scrollHeight;
         }
 
-        function updateApiKeyIndicator() { activeKeyLabel.innerText = `KEY_0${activeKeyIndex + 1}`; if (activeKeyIndex > 0) { activeKeyLabel.classList.remove('text-amber-400'); activeKeyLabel.classList.add('text-rose-400'); } else { activeKeyLabel.classList.remove('text-rose-400'); activeKeyLabel.classList.add('text-amber-400'); } }
-        function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g, ' '); }
-        function rotateApiKey() { statistics.failures++; statFailures.innerText = statistics.failures; const nextIndex = (activeKeyIndex + 1) % API_KEYS_POOL.length; logSystemEvent(`¡Límite de API Key alcanzado en KEY_0${activeKeyIndex+1}! Redirigiendo...`, "amber"); activeKeyIndex = nextIndex; updateApiKeyIndicator(); logSystemEvent(`Canal establecido en KEY_0${activeKeyIndex+1}.`, "emerald"); }
+        function updateApiKeyIndicator() { activeKeyLabel.innerText = `KEY_0${activeKeyIndex+1}`; }
+        function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' '); }
+        function rotateApiKey() { statistics.failures++; statFailures.innerText = statistics.failures; activeKeyIndex = (activeKeyIndex+1)%API_KEYS_POOL.length; updateApiKeyIndicator(); logEvent(`Fallback a ${activeKeyLabel.innerText}`, "amber"); }
 
-        // --- IMAGEN MULTIMODAL ---
-        dropZone.addEventListener('click', () => imageInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-active'); });
-        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-active'); if (e.dataTransfer.files.length) processUploadedImage(e.dataTransfer.files[0]); });
-        imageInput.addEventListener('change', (e) => { if (e.target.files.length) processUploadedImage(e.target.files[0]); });
-        removeImageBtn.addEventListener('click', (e) => { e.stopPropagation(); clearImageInput(); });
-        function clearImageInput() { selectedBase64Image = null; imageInput.value = ''; previewContainer.classList.add('hidden'); dropZoneContent.classList.remove('hidden'); inputImageBadge.classList.add('hidden'); logSystemEvent("Imagen removida del buffer.", "cyan"); }
-        function processUploadedImage(file) {
-            if (!file.type.startsWith('image/')) { logSystemEvent("Formato de imagen no válido.", "red"); return; }
-            const reader = new FileReader(); logSystemEvent(`Cargando ${file.name}...`, "cyan");
-            reader.onload = function(e) {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas'); let width = img.width, height = img.height; const MAX = 1000;
-                    if (width > height) { if (width > MAX) { height *= MAX / width; width = MAX; } } else { if (height > MAX) { width *= MAX / height; height = MAX; } }
-                    canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                    selectedBase64Image = canvas.toDataURL('image/jpeg', 0.85); imagePreview.src = selectedBase64Image;
-                    dropZoneContent.classList.add('hidden'); previewContainer.classList.remove('hidden'); inputImageBadge.classList.remove('hidden');
-                    logSystemEvent(`Imagen procesada: ${file.name}`, "emerald");
+        // Manejo de imágenes
+        dropZone.addEventListener('click',()=>imageInput.click());
+        dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-active');});
+        dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-active'));
+        dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-active');if(e.dataTransfer.files[0]) processImage(e.dataTransfer.files[0]);});
+        imageInput.addEventListener('change',e=>{if(e.target.files[0]) processImage(e.target.files[0]);});
+        removeImageBtn.addEventListener('click',()=>{selectedBase64Image=null;previewContainer.classList.add('hidden');dropZoneContent.classList.remove('hidden');logEvent("Imagen removida","cyan");});
+
+        function processImage(file){
+            if(!file.type.startsWith('image/')){logEvent("Formato inválido","red");return;}
+            const reader=new FileReader();
+            reader.onload=e=>{
+                const img=new Image();
+                img.src=e.target.result;
+                img.onload=()=>{
+                    const canvas=document.createElement('canvas');
+                    let w=img.width,h=img.height; const max=1000;
+                    if(w>h){if(w>max){h*=max/w;w=max;}}else{if(h>max){w*=max/h;h=max;}}
+                    canvas.width=w;canvas.height=h;
+                    canvas.getContext('2d').drawImage(img,0,0,w,h);
+                    selectedBase64Image=canvas.toDataURL('image/jpeg',0.85);
+                    imagePreview.src=selectedBase64Image;
+                    dropZoneContent.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                    logEvent(`Imagen ${file.name} cargada`, "emerald");
                 };
-            }; reader.readAsDataURL(file);
+            };
+            reader.readAsDataURL(file);
         }
 
-        promptTemplateSelect.addEventListener('change', (e) => { if (e.target.value) { userInput.value = e.target.value; userInput.focus(); userInput.style.height = 'auto'; userInput.style.height = (userInput.scrollHeight) + 'px'; } });
-        chatForm.addEventListener('submit', async (e) => { e.preventDefault(); const promptText = userInput.value.trim(); if (!promptText && !selectedBase64Image) return; userInput.value = ''; userInput.style.height = 'auto'; appendChatMessage("user", promptText, selectedBase64Image); await queryJarvisAI(promptText, selectedBase64Image); });
+        promptTemplateSelect.addEventListener('change',e=>{if(e.target.value){userInput.value=e.target.value;userInput.style.height='auto';userInput.focus();}});
+        chatForm.addEventListener('submit',async(e)=>{e.preventDefault();const text=userInput.value.trim();if(!text&&!selectedBase64Image)return;userInput.value='';userInput.style.height='auto';appendMessage("user",text,selectedBase64Image);await queryAI(text,selectedBase64Image);});
 
-        function appendChatMessage(sender, text, base64Img = null) {
-            const messageDiv = document.createElement('div'); const isJarvis = sender === "jarvis";
-            messageDiv.className = `${isJarvis ? 'message-jarvis' : 'message-user'} p-3.5 rounded-lg max-w-[85%] ${isJarvis ? 'self-start' : 'self-end'} flex gap-3 transition-all duration-300 transform translate-y-2 opacity-0`;
-            const avatarHtml = isJarvis ? `<div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-robot text-xs"></i></div>` : `<div class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center text-amber-400"><i class="fa-solid fa-user-tie text-xs"></i></div>`;
-            const senderLabel = isJarvis ? "J.A.R.V.I.S." : "Señor"; const labelColor = isJarvis ? "text-cyan-400" : "text-amber-400";
-            let mediaHtml = base64Img ? `<img src="${base64Img}" class="max-h-40 rounded-lg border border-cyan-900/60 object-contain my-2 block" alt="Adjunto" />` : '';
-            let formattedText = isJarvis ? formatJarvisResponseText(text) : text.replace(/\n/g, '<br>');
-            messageDiv.innerHTML = `${isJarvis ? avatarHtml : ''}<div class="flex-1 flex flex-col gap-1"><span class="hud-font text-[10px] font-bold ${labelColor} tracking-wider">${senderLabel}</span>${mediaHtml}<div class="text-sm leading-relaxed prose prose-invert font-sans">${formattedText}</div></div>${!isJarvis ? avatarHtml : ''}`;
-            chatMessages.appendChild(messageDiv); setTimeout(() => { messageDiv.classList.remove('translate-y-2', 'opacity-0'); }, 50); chatMessages.scrollTop = chatMessages.scrollHeight;
+        function appendMessage(sender,text,img=null){
+            const div=document.createElement('div');
+            const isJarvis=sender==="jarvis";
+            div.className=`${isJarvis?'message-jarvis':'message-user'} p-3 rounded-lg max-w-[85%] ${isJarvis?'self-start':'self-end'} flex gap-3 transition-all`;
+            const avatar=isJarvis?'<div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>':'<div class="w-8 h-8 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center"><i class="fa-solid fa-user-tie text-amber-400"></i></div>';
+            let media=img?`<img src="${img}" class="max-h-32 rounded border border-cyan-500 my-1" />`:'';
+            let formatted=isJarvis?formatResponse(text):text.replace(/\n/g,'<br>');
+            div.innerHTML=`${isJarvis?avatar:''}<div class="flex-1"><span class="hud-font text-[10px] font-bold ${isJarvis?'text-cyan-400':'text-amber-400'}">${isJarvis?'J.A.R.V.I.S.':'Señor'}</span>${media}<div class="text-sm leading-relaxed">${formatted}</div></div>${!isJarvis?avatar:''}`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop=chatMessages.scrollHeight;
         }
 
-        function formatJarvisResponseText(text) {
-            let cleaned = text.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-cyan-900 text-cyan-400 rounded my-2"><i class="fa-solid fa-file-word mr-1.5"></i> Estructura Word compilada en memoria.</div>')
-                .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-emerald-900 text-emerald-400 rounded my-2"><i class="fa-solid fa-file-excel mr-1.5"></i> Matriz Excel procesada.</div>')
-                .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-orange-900 text-orange-400 rounded my-2"><i class="fa-solid fa-file-powerpoint mr-1.5"></i> Diapositivas listas.</div>')
-                .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-cyan-700 text-cyan-300 rounded my-2"><i class="fa-solid fa-diagram-project mr-1.5"></i> Mapa conceptual (CXL) estructurado.</div>')
-                .replace(/\[START-TXT[\s\S]*?\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-slate-700 text-slate-300 rounded my-2"><i class="fa-solid fa-file-lines mr-1.5"></i> Texto plano formateado.</div>');
-            return cleaned.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        function formatResponse(t){
+            let r=t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
+                    .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel compilada</div>')
+                    .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PowerPoint</div>')
+                    .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa conceptual CXL</div>')
+                    .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo de texto</div>');
+            return r.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
         }
 
-        async function queryJarvisAI(promptText, base64ImageString = null, retries = 0) {
-            if (activeKeyIndex >= API_KEYS_POOL.length) { appendChatMessage("jarvis", "Señor, todas las llaves API han agotado su cuota."); return; }
-            const currentKey = API_KEYS_POOL[activeKeyIndex]; const currentModel = MODELS_POOL[activeModelIndex];
-            statistics.requests++; statRequests.innerText = statistics.requests;
-            loadingIndicator.classList.remove('hidden'); loadingText.innerText = base64ImageString ? `ANÁLISIS MULTIMODAL CON ${currentModel.toUpperCase()}...` : `ENLACE CON ${currentModel.toUpperCase()}...`;
-            let elapsed = 0; const startTime = performance.now(); loadingTimer.innerText = "0.0s"; const timerInterval = setInterval(() => { elapsed += 0.1; loadingTimer.innerText = elapsed.toFixed(1) + "s"; }, 100);
-            try {
-                let parts = [];
-                if (base64ImageString) { const mimeType = base64ImageString.split(';')[0].split(':')[1]; const pure = base64ImageString.split(',')[1]; parts.push({ text: promptText || "Analiza esta imagen en detalle." }); parts.push({ inlineData: { mimeType: mimeType, data: pure } }); }
-                else { parts.push({ text: promptText }); }
-                const conversationContext = chatHistory.slice(-6).map(msg => ({ role: msg.sender === "jarvis" ? "model" : "user", parts: [{ text: msg.text }] }));
-                const finalContents = [...conversationContext, { role: "user", parts: parts }];
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${currentKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: finalContents, systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] } }) });
-                clearInterval(timerInterval); statLatency.innerText = `${Math.round(performance.now() - startTime)}ms`;
-                if (response.status === 404 && activeModelIndex < MODELS_POOL.length-1) { activeModelIndex++; updateModelIndicator(); logSystemEvent(`Conmutando modelo a ${MODELS_POOL[activeModelIndex]}`, "amber"); return queryJarvisAI(promptText, base64ImageString, retries); }
-                if (!response.ok) throw new Error(`HTTP_${response.status}`);
-                const data = await response.json(); const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!responseText) throw new Error("Empty response");
-                loadingIndicator.classList.add('hidden'); chatHistory.push({ sender: "user", text: promptText }); chatHistory.push({ sender: "jarvis", text: responseText }); appendChatMessage("jarvis", responseText); parseAndProcessGeneratedFiles(responseText); if (base64ImageString) clearImageInput();
-            } catch (error) {
-                clearInterval(timerInterval); console.error(error);
-                if (error.message.includes("429") || error.message.includes("403") || error.message === "TypeError: Failed to fetch") { rotateApiKey(); setTimeout(() => queryJarvisAI(promptText, base64ImageString, retries + 1), Math.pow(2, retries) * 1000); }
-                else { loadingIndicator.classList.add('hidden'); appendChatMessage("jarvis", "Señor, se produjo una anomalía en el subsistema cognitivo. ¿Podría reintentar?"); logSystemEvent(`Error crítico: ${error.message}`, "red"); }
+        async function queryAI(prompt, imageBase64, retry=0){
+            if(activeKeyIndex>=API_KEYS_POOL.length){appendMessage("jarvis","Señor, todas las claves API fallaron.");return;}
+            const key=API_KEYS_POOL[activeKeyIndex];
+            const model=MODELS_POOL[activeModelIndex];
+            statistics.requests++; statRequests.innerText=statistics.requests;
+            loadingIndicator.classList.remove('hidden');
+            loadingText.innerText=imageBase64?`MULTIMODAL ${model.toUpperCase()}`:`CONECTANDO ${model.toUpperCase()}`;
+            let start=performance.now();
+            let elapsed=0; const timer=setInterval(()=>{elapsed+=0.1;loadingTimer.innerText=elapsed.toFixed(1)+"s";},100);
+            try{
+                let parts=[];
+                if(imageBase64){
+                    let mime=imageBase64.split(';')[0].split(':')[1];
+                    let pure=imageBase64.split(',')[1];
+                    parts.push({text:prompt||"Analice esta imagen en detalle."});
+                    parts.push({inlineData:{mimeType:mime,data:pure}});
+                }else parts.push({text:prompt});
+                const context=chatHistory.slice(-6).map(m=>({role:m.sender==="jarvis"?"model":"user",parts:[{text:m.text}]}));
+                const body={contents:[...context,{role:"user",parts}],systemInstruction:{parts:[{text:SYSTEM_PROMPT}]}};
+                const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+                clearInterval(timer);
+                statLatency.innerText=`${Math.round(performance.now()-start)}ms`;
+                if(res.status===404 && activeModelIndex<MODELS_POOL.length-1){activeModelIndex++;updateModelIndicator();logEvent(`Cambio a modelo ${MODELS_POOL[activeModelIndex]}`, "amber");return queryAI(prompt,imageBase64,retry);}
+                if(!res.ok)throw new Error(`HTTP ${res.status}`);
+                const data=await res.json();
+                const reply=data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if(!reply)throw new Error("Respuesta vacía");
+                loadingIndicator.classList.add('hidden');
+                chatHistory.push({sender:"user",text:prompt},{sender:"jarvis",text:reply});
+                appendMessage("jarvis",reply);
+                parseFiles(reply);
+                if(imageBase64){selectedBase64Image=null;previewContainer.classList.add('hidden');dropZoneContent.classList.remove('hidden');}
+            }catch(err){
+                clearInterval(timer);
+                if(err.message.includes("429")||err.message.includes("403")||err.message==="TypeError: Failed to fetch"){
+                    rotateApiKey();
+                    setTimeout(()=>queryAI(prompt,imageBase64,retry+1),Math.pow(2,retry)*1000);
+                }else{
+                    loadingIndicator.classList.add('hidden');
+                    appendMessage("jarvis","Señor, se ha producido una interferencia en la comunicación. ¿Podría intentarlo de nuevo?");
+                    logEvent(`Error: ${err.message}`,"red");
+                }
             }
         }
 
-        // PARSER PRINCIPAL
-        function parseAndProcessGeneratedFiles(responseText) {
-            const wordMatch = responseText.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/); if (wordMatch) try { generateWordDocument(JSON.parse(wordMatch[1].trim())); } catch(e) { logSystemEvent(`Error Word: ${e.message}`, "red"); }
-            const excelMatch = responseText.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/); if (excelMatch) try { generateExcelDocument(JSON.parse(excelMatch[1].trim())); } catch(e) { logSystemEvent(`Error Excel: ${e.message}`, "red"); }
-            const pptMatch = responseText.match(/\[START-PPT\]([\s\S]*?)\[END-PPT\]/); if (pptMatch) try { generatePowerPointDocument(JSON.parse(pptMatch[1].trim())); } catch(e) { logSystemEvent(`Error PPT: ${e.message}`, "red"); }
-            const cxlMatch = responseText.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/); if (cxlMatch) try { generateCXLMapDocument(JSON.parse(cxlMatch[1].trim())); } catch(e) { logSystemEvent(`Error CXL: ${e.message}`, "red"); }
-            const txtRegex = /\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g; let txtMatch; while ((txtMatch = txtRegex.exec(responseText)) !== null) { generateTxtDocument(txtMatch[1].trim(), txtMatch[2]); }
+        function parseFiles(text){
+            // Word usando html-docx-js
+            const wordMatch=text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
+            if(wordMatch) try{ generateWord(JSON.parse(wordMatch[1].trim())); }catch(e){ logEvent(`Error Word JSON: ${e.message}`,"red"); }
+            // Excel
+            const excelMatch=text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
+            if(excelMatch) try{ generateExcel(JSON.parse(excelMatch[1].trim())); }catch(e){ logEvent(`Error Excel: ${e.message}`,"red"); }
+            // PPT
+            const pptMatch=text.match(/\[START-PPT\]([\s\S]*?)\[END-PPT\]/);
+            if(pptMatch) try{ generatePPT(JSON.parse(pptMatch[1].trim())); }catch(e){ logEvent(`Error PPT: ${e.message}`,"red"); }
+            // CXL
+            const cxlMatch=text.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/);
+            if(cxlMatch) try{ generateCXL(JSON.parse(cxlMatch[1].trim())); }catch(e){ logEvent(`Error CXL: ${e.message}`,"red"); }
+            // TXT
+            const txtRegex=/\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g;
+            let m; while((m=txtRegex.exec(text))!==null) generateTXT(m[1],m[2]);
         }
 
-        // GENERADORES DE ARCHIVOS (DOCX con verificación robusta)
-        function registerNewFileInVault(filename, fileType, downloadCallback) {
-            statistics.filesGenerated++; statFiles.innerText = statistics.filesGenerated;
-            vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden'); vaultList.classList.add('flex');
-            const fileRow = document.createElement('div'); fileRow.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950 hover:border-cyan-500/50 transition-colors";
-            let iconClass = "fa-file-lines text-slate-400"; if (fileType === "docx") iconClass = "fa-file-word text-cyan-400"; if (fileType === "xlsx") iconClass = "fa-file-excel text-emerald-400"; if (fileType === "pptx") iconClass = "fa-file-powerpoint text-orange-400"; if (fileType === "cxl") iconClass = "fa-diagram-project text-cyan-300";
-            fileRow.innerHTML = `<div class="flex items-center gap-2 overflow-hidden mr-2"><i class="fa-solid ${iconClass} text-sm flex-shrink-0"></i><div class="truncate"><span class="text-xs text-white block truncate tech-font font-bold">${filename}</span><span class="text-[9px] text-cyan-600 block uppercase tech-font">${fileType.toUpperCase()}</span></div></div><button class="bg-cyan-950/80 border border-cyan-800 text-[10px] text-cyan-400 px-2.5 py-1 rounded hover:bg-cyan-800 hover:text-white transition-all flex-shrink-0 tech-font flex items-center gap-1"><i class="fa-solid fa-download"></i> BAJAR</button>`;
-            fileRow.querySelector('button').addEventListener('click', downloadCallback); vaultList.insertBefore(fileRow, vaultList.firstChild);
-            vaultCount.innerText = `${statistics.filesGenerated} ARCHIVOS`; logSystemEvent(`Archivo ${filename} almacenado.`, "emerald");
+        function addToVault(filename,type,downloadFn){
+            statistics.filesGenerated++; statFiles.innerText=statistics.filesGenerated;
+            vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
+            const row=document.createElement('div');
+            row.className="flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950";
+            let icon="fa-file-lines"; if(type==='docx') icon="fa-file-word text-cyan-400"; if(type==='xlsx') icon="fa-file-excel text-emerald-400"; if(type==='pptx') icon="fa-file-powerpoint text-orange-400"; if(type==='cxl') icon="fa-diagram-project text-cyan-300";
+            row.innerHTML=`<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div><button class="bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>`;
+            row.querySelector('button').addEventListener('click',downloadFn);
+            vaultList.prepend(row);
+            vaultCount.innerText=`${statistics.filesGenerated} ARCHIVOS`;
+            logEvent(`Archivo ${filename} guardado en bóveda`,"emerald");
         }
 
-        function generateWordDocument(data) {
-            if (typeof window.docx === 'undefined') { logSystemEvent("Librería DOCX no disponible. Reintentando carga...", "red"); return; }
-            const { Document, Packer, Paragraph, TextRun } = window.docx;
-            const docTitle = data.title || "Reporte Stark"; const docSubtitle = data.subtitle || "J.A.R.V.I.S. Automation";
-            const sectionsArr = data.sections || [];
-            const children = [
-                new Paragraph({ children: [new TextRun({ text: docTitle.toUpperCase(), bold: true, size: 56, color: "005a70" })], spacing: { after: 120 } }),
-                new Paragraph({ children: [new TextRun({ text: docSubtitle, italics: true, size: 28, color: "666666" })], spacing: { after: 360 } }),
-                new Paragraph({ children: [new TextRun({ text: `Generado por J.A.R.V.I.S. el ${new Date().toLocaleDateString()}`, size: 18, color: "999999" })], spacing: { after: 480 } })
-            ];
-            sectionsArr.forEach(sec => {
-                children.push(new Paragraph({ children: [new TextRun({ text: sec.heading, bold: true, size: 36, color: "005a70" })], spacing: { before: 240, after: 120 }, keepWithNext: true }));
-                sec.paragraphs.forEach(p => { children.push(new Paragraph({ children: [new TextRun({ text: p, size: 22 })], spacing: { after: 160 } })); });
+        // NUEVA GENERACIÓN DE WORD CON html-docx-js
+        function generateWord(data){
+            const title=data.title||"Documento J.A.R.V.I.S.";
+            const subtitle=data.subtitle||"Generado automáticamente";
+            const sections=data.sections||[];
+            let htmlContent=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>body{font-family: Calibri, Arial, sans-serif; margin: 2cm;} h1{color:#005a70;} h2{color:#007a90;} p{line-height:1.4;}</style></head><body><h1>${escapeHtml(title)}</h1><h3>${escapeHtml(subtitle)}</h3><p><em>Generado por J.A.R.V.I.S. el ${new Date().toLocaleString()}</em></p>`;
+            sections.forEach(sec=>{
+                htmlContent+=`<h2>${escapeHtml(sec.heading)}</h2>`;
+                sec.paragraphs.forEach(p=>htmlContent+=`<p>${escapeHtml(p)}</p>`);
             });
-            const doc = new Document({ sections: [{ properties: {}, children: children }] });
-            Packer.toBlob(doc).then(blob => { const filename = `${docTitle.toLowerCase().replace(/\s+/g, '_')}_report.docx`; registerNewFileInVault(filename, "docx", () => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }); }).catch(err => logSystemEvent(`Error empaquetado Word: ${err.message}`, "red"));
+            htmlContent+=`</body></html>`;
+            const fileName=`${title.toLowerCase().replace(/\s+/g,'_')}_report.docx`;
+            const converted = window.htmlDocx.asBlob(htmlContent);
+            addToVault(fileName,"docx",()=>{
+                const url=URL.createObjectURL(converted);
+                const a=document.createElement('a');a.href=url;a.download=fileName;a.click();URL.revokeObjectURL(url);
+            });
         }
 
-        function generateExcelDocument(data) { const sheetName = data.sheetName || "Datos"; const headers = data.headers || ["ID", "Concepto"]; const rows = data.rows || []; const filename = `${sheetName.toLowerCase().replace(/\s+/g, '_')}_data.xlsx`; const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]); XLSX.utils.book_append_sheet(wb, ws, sheetName); registerNewFileInVault(filename, "xlsx", () => XLSX.writeFile(wb, filename)); }
-        function generatePowerPointDocument(data) { const pptx = new PptxGenJS(); pptx.layout = 'LAYOUT_16x9'; const titleSlide = pptx.addSlide(); titleSlide.background = { fill: '020A16' }; titleSlide.addText(data.presentationTitle?.toUpperCase() || "PRESENTACIÓN STARK", { x: 0.5, y: 2.2, w: '90%', h: 1.5, fontSize: 38, bold: true, color: '00f0ff', align: 'center' }); titleSlide.addText("AUTOGENERADO POR J.A.R.V.I.S.", { x: 0.5, y: 3.8, w: '90%', h: 0.5, fontSize: 14, italic: true, color: 'e2f1f5', align: 'center' }); (data.slides || []).forEach(s => { const slide = pptx.addSlide(); slide.background = { fill: '041124' }; slide.addShape(pptx.shapes.RECTANGLE, { x: 0.5, y: 1.0, w: '90%', h: 0.05, fill: '00f0ff' }); slide.addText(s.title, { x: 0.5, y: 0.4, w: '90%', h: 0.6, fontSize: 24, bold: true, color: '00f0ff' }); slide.addText((s.bullets || []).join('\n\n'), { x: 0.8, y: 1.4, w: '84%', h: 4.0, fontSize: 15, color: 'e2f1f5', bullet: true, lineSpacing: 22 }); }); const filename = `${(data.presentationTitle || "presentacion").toLowerCase().replace(/\s+/g, '_')}_deck.pptx`; registerNewFileInVault(filename, "pptx", () => pptx.writeFile({ fileName: filename })); }
-        function generateCXLMapDocument(data) { const mapTitle = data.title || "Mapa Conceptual"; const concepts = data.concepts || []; const linkingPhrases = data.linkingPhrases || []; const connections = data.connections || []; const pos = {}; const levels = {}; const adj = {}; const indeg = {}; [...concepts, ...linkingPhrases].forEach(n => { adj[n.id] = []; indeg[n.id] = 0; }); connections.forEach(c => { if (adj[c.from]) { adj[c.from].push(c.to); indeg[c.to] = (indeg[c.to] || 0) + 1; } }); let roots = concepts.filter(c => !indeg[c.id]).map(c => c.id); if (roots.length === 0 && concepts.length) roots = [concepts[0].id]; let queue = [...roots]; roots.forEach(r => levels[r] = 0); while (queue.length) { const u = queue.shift(); (adj[u] || []).forEach(v => { if (levels[v] === undefined || levels[v] < levels[u] + 1) levels[v] = levels[u] + 1; queue.push(v); }); } [...concepts, ...linkingPhrases].forEach(n => { if (levels[n.id] === undefined) levels[n.id] = 0; }); const lvlMap = {}; Object.keys(levels).forEach(id => { const l = levels[id]; if (!lvlMap[l]) lvlMap[l] = []; lvlMap[l].push(id); }); const centerX = 600, spacingX = 180, spacingY = 100; Object.keys(lvlMap).forEach(lvlStr => { const lvl = parseInt(lvlStr,10); const nodes = lvlMap[lvl]; const total = (nodes.length-1)*spacingX; nodes.forEach((id, idx) => { pos[id] = { x: Math.round(centerX - total/2 + idx*spacingX), y: Math.round(80 + lvl*spacingY) }; }); }); let xml = `<?xml version="1.0" encoding="UTF-8"?><cmap xmlns="http://cmap.ihmc.us/xml/cmap/"><res-meta><dc:title>${mapTitle}</dc:title><dc:creator>J.A.R.V.I.S.</dc:creator></res-meta><map><concept-list>${concepts.map(c => `<concept id="${c.id}" label="${c.label}" />`).join('')}</concept-list><linking-phrase-list>${linkingPhrases.map(lp => `<linking-phrase id="${lp.id}" label="${lp.label}" />`).join('')}</linking-phrase-list><connection-list>${connections.map((c,i) => `<connection id="conn_${i}" from-id="${c.from}" to-id="${c.to}" />`).join('')}</connection-list><concept-appearance-list>${concepts.map(c => { const p = pos[c.id] || {x:200,y:100}; return `<concept-appearance id="${c.id}" x="${p.x}" y="${p.y}" width="145" height="45" background-color="220,245,255,255" border-color="0,90,112,255" border-thickness="2" border-shape="rounded-rectangle" font-color="0,30,50,255" font-size="11" font-style="bold" />`; }).join('')}</concept-appearance-list><linking-phrase-appearance-list>${linkingPhrases.map(lp => { const p = pos[lp.id] || {x:200,y:150}; return `<linking-phrase-appearance id="${lp.id}" x="${p.x}" y="${p.y}" width="90" height="30" font-color="0,90,112,255" font-size="10" font-style="plain" />`; }).join('')}</linking-phrase-appearance-list><connection-appearance-list>${connections.map((_,i) => `<connection-appearance id="conn_${i}" arrowhead="if-to-concept" />`).join('')}</connection-appearance-list></map></cmap>`; const filename = `${mapTitle.toLowerCase().replace(/\s+/g, '_')}_map.cxl`; const blob = new Blob([xml], { type: "text/xml" }); registerNewFileInVault(filename, "cxl", () => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }); }
-        function generateTxtDocument(filename, content) { const blob = new Blob([content], { type: "text/plain" }); registerNewFileInVault(filename, "txt", () => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }); }
+        function generateExcel(data){
+            const sheetName=data.sheetName||"Datos"; const headers=data.headers||["Campo1","Campo2"]; const rows=data.rows||[];
+            const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+            XLSX.utils.book_append_sheet(wb,ws,sheetName);
+            const filename=`${sheetName.toLowerCase().replace(/\s/g,'_')}_data.xlsx`;
+            addToVault(filename,"xlsx",()=>XLSX.writeFile(wb,filename));
+        }
 
-        window.addEventListener('DOMContentLoaded', () => { updateApiKeyIndicator(); updateModelIndicator(); logSystemEvent("Sistemas J.A.R.V.I.S. en línea.", "cyan"); userInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; }); });
+        function generatePPT(data){
+            const pptx=new PptxGenJS(); pptx.layout='LAYOUT_16x9';
+            const titleSlide=pptx.addSlide(); titleSlide.addText(data.presentationTitle||"Presentación",{x:0.5,y:2.2,w:'90%',h:1.5,fontSize:38,bold:true,color:'00f0ff',align:'center'});
+            (data.slides||[]).forEach(s=>{ const slide=pptx.addSlide(); slide.addText(s.title,{x:0.5,y:0.4,fontSize:24,bold:true,color:'00f0ff'}); slide.addText((s.bullets||[]).join('\n'),{x:0.8,y:1.4,w:'84%',h:4.0,fontSize:15,bullet:true}); });
+            const filename=`${(data.presentationTitle||"presentacion").toLowerCase().replace(/\s/g,'_')}.pptx`;
+            addToVault(filename,"pptx",()=>pptx.writeFile({fileName:filename}));
+        }
+
+        function generateCXL(data){
+            const title=data.title||"Mapa"; const concepts=data.concepts||[]; const phrases=data.linkingPhrases||[]; const conns=data.connections||[];
+            let xml=`<?xml version="1.0"?><cmap><res-meta><dc:title>${title}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${c.id}" label="${c.label}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${p.id}" label="${p.label}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${c.from}" to-id="${c.to}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${c.id}" x="${100+ i*120}" y="100" width="145" height="45" background-color="220,245,255,255"/>`).join('')}</concept-appearance-list></map></cmap>`;
+            const filename=`${title.toLowerCase().replace(/\s/g,'_')}.cxl`;
+            const blob=new Blob([xml],{type:"text/xml"});
+            addToVault(filename,"cxl",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
+        }
+
+        function generateTXT(filename,content){
+            const blob=new Blob([content],{type:"text/plain"});
+            addToVault(filename,"txt",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
+        }
+
+        function escapeHtml(str){ return str.replace(/[&<>]/g,function(m){if(m==='&')return '&amp;';if(m==='<')return '&lt;';if(m==='>')return '&gt;';return m;});}
+
+        window.addEventListener('DOMContentLoaded',()=>{updateApiKeyIndicator();updateModelIndicator();logEvent("Sistema J.A.R.V.I.S. operativo con html-docx-js","emerald");userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});});
     </script>
 </body>
 </html>
