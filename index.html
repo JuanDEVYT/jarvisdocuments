@@ -7,8 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Librerías de generación -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
@@ -25,8 +23,7 @@
         body {
             font-family: 'Rajdhani', sans-serif;
             background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 50% 50%, rgba(0, 90, 112, 0.2) 0%, transparent 80%),
-                              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 90, 112, 0.2) 0%, transparent 80%);
             color: #e2f1f5;
             overflow-x: hidden;
         }
@@ -73,9 +70,9 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v4.0</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v4.2</span>
                 </h1>
-                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Generador con soporte UTF-8, negritas reales y tablas</p>
+                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Generador con HTML puro, negritas reales y UTF-8</p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
@@ -88,10 +85,9 @@
     </header>
 
     <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <!-- Columna Izquierda -->
         <section class="lg:col-span-4 flex flex-col gap-4">
             <div class="hud-panel p-4 rounded">
-                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-solid fa-sliders mr-2"></i>Consola del Sistema</h3>
+                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-solid fa-sliders mr-2"></i>Consola</h3>
                 <div class="grid grid-cols-2 gap-2 tech-font text-xs mt-3">
                     <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Peticiones</span><span id="stat-requests" class="text-base text-cyan-300 font-bold">0</span></div>
                     <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Latencia</span><span id="stat-latency" class="text-base text-cyan-300 font-bold">0ms</span></div>
@@ -108,7 +104,6 @@
                     <div id="drop-zone-content" class="text-center"><i class="fa-solid fa-cloud-arrow-up text-2xl text-cyan-400 mb-2 animate-pulse"></i><span class="text-xs text-cyan-300">Arrastra imagen o haz clic</span></div>
                     <div id="preview-container" class="hidden w-full flex-col items-center gap-2"><img id="image-preview" class="max-h-32 border border-cyan-400 rounded-md" /><button id="remove-image-btn" class="text-[11px] bg-red-950/60 border border-red-800 text-red-400 px-3 py-1 rounded"><i class="fa-solid fa-trash-can"></i> Remover</button></div>
                 </div>
-                <p class="text-[10px] text-cyan-600 mt-2">La imagen se puede incluir en el documento Word si lo solicitas.</p>
             </div>
 
             <div class="hud-panel p-4 rounded flex-1">
@@ -118,38 +113,37 @@
             </div>
         </section>
 
-        <!-- Columna Derecha: Chat -->
         <section class="lg:col-span-8 flex flex-col gap-4">
             <div class="hud-panel rounded flex flex-col flex-1 h-[650px] lg:h-[calc(100vh-160px)]">
                 <div class="bg-slate-950/85 px-4 py-3 border-b border-cyan-900/50 flex justify-between items-center">
                     <div class="flex items-center gap-2"><span class="relative flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-500"></span></span><span class="hud-font text-xs font-bold text-cyan-400">J.A.R.V.I.S. COGNITIVE CHAT</span></div>
                     <select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300">
                         <option value="">-- Acción rápida --</option>
+                        <option value="Genera un informe de ventas ejecutivo en Word. El documento debe contener: título, saludo formal, sección de desempeño general (con negritas reales en las cifras), lista de puntos clave con viñetas (usando ul/li), tabla de ventas por categoría (con bordes y alineación), conclusiones y firma. Usa orientación vertical, márgenes normales, y asegúrate de que todo el texto esté dentro del cuerpo HTML, sin fragmentos CSS sueltos. Usa <strong> para negritas, <em> para énfasis, y respeta las tildes y la ñ.">Generar Informe de Ventas (Word)</option>
                         <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Mapa SDLC (CXL)</option>
-                        <option value="Crea un informe de ventas en Word con formato ejecutivo. El documento debe tener orientación horizontal, márgenes de 1.5cm, e incluir negritas reales (usando <strong>), viñetas y una tabla de resumen. Usa correctamente las tildes y caracteres especiales.">Reporte ejecutivo avanzado (Word)</option>
-                        <option value="Genera un desglose de presupuesto financiero en Excel con 3 columnas de ejemplo.">Presupuesto (Excel)</option>
-                        <option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en el 2026.">Diapositivas IA (PPT)</option>
+                        <option value="Genera un presupuesto financiero en Excel con 3 columnas de ejemplo.">Presupuesto (Excel)</option>
+                        <option value="Prepara una presentación de 4 diapositivas sobre IA en 2026.">Diapositivas IA (PPT)</option>
                     </select>
                 </div>
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
                     <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3">
                         <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>
-                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, he actualizado mi motor de documentos. Ahora genero archivos Word con <strong>negritas reales</strong>, <em>cursivas</em>, listas y tablas respetando completamente la codificación UTF-8 (tildes, ñ, caracteres especiales). ¿Qué desea crear?</p></div>
+                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, he perfeccionado el motor de documentos. Ahora genero <strong>HTML puro</strong> sin fragmentos CSS sueltos, con <strong>negritas reales</strong>, viñetas, tablas y respeto total por la codificación UTF-8 (tildes, ñ). ¿En qué puedo asistirle?</p></div>
                     </div>
                 </div>
                 <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
                 <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2">
-                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ejemplo: 'Genera un informe de ventas con orientación horizontal, incluye negritas, viñetas y una tabla.'"></textarea>
+                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ej: 'Genera un informe de ventas con tabla y negritas'"></textarea>
                     <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
     </main>
 
-    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">SISTEMA J.A.R.V.I.S. — PROTOCOLO UTF-8 Y FORMATO ENRIQUECIDO</footer>
+    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — HTML puro, negritas reales, UTF-8 sin errores</footer>
 
     <script>
-        // ---------- CONFIGURACIÓN API ----------
+        // API KEYS
         const API_KEYS_POOL = ["AIzaSyCm-F_ome5NCrGXnGJCTH_59SMRToSjaM8", "AIzaSyCv3zstg8kTPsMlWGs0nCpS_paVFIqfy78"];
         let activeKeyIndex = 0;
         let selectedBase64Image = null;
@@ -158,33 +152,33 @@
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
         let activeModelIndex = 0;
 
-        // PROMPT DE SISTEMA MEJORADO: instrucciones estrictas de formato HTML y UTF-8
-        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de IA. Para documentos Word, debes generar código HTML completo dentro de las etiquetas [START-WORD] y [END-WORD]. Requisitos:
+        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., un asistente de IA que genera documentos profesionales. Para documentos Word, debes producir exclusivamente código HTML completo dentro de las etiquetas [START-WORD] y [END-WORD].
 
-1. **Negritas reales**: usa <strong>texto</strong>, NO uses ** ni __.
-2. **Cursivas**: usa <em>texto</em>.
-3. **Listas con viñetas**: usa <ul><li>ítem</li></ul>. No uses caracteres como "•" directamente.
-4. **Tablas**: estructura con <table border="1" cellpadding="5" style="border-collapse:collapse;">.
-5. **Codificación**: Incluye siempre <meta charset="UTF-8"> en el <head>. Asegúrate de que todos los caracteres especiales (tildes, ñ, ç, etc.) se escriban correctamente en el HTML, sin escapes raros.
-6. **Configuración de página**: Usa una regla @page en el <style> según lo solicite el usuario. Por defecto: @page { size: A4 portrait; margin: 2.54cm; }.
-7. **Imágenes**: Si el usuario adjuntó una imagen, se te pasará en base64; debes insertarla con <img src="data:image/jpeg;base64,..." />. Si no, puedes usar URLs de ejemplo.
+REGLAS ESTRICTAS:
+- **NEGRITAS**: Usa SIEMPRE <strong>texto</strong>. NUNCA uses **texto** ni __texto__.
+- **LISTAS**: Usa <ul><li>ítem</li></ul> para viñetas. No uses caracteres "•" directamente.
+- **TABLAS**: Usa <table border="1" cellpadding="5" style="border-collapse:collapse;"> con <thead><tr><th>...</th></tr></thead> y <tbody>.
+- **CODIFICACIÓN**: Incluye <meta charset="UTF-8"> en el <head>. Todos los acentos, eñes, etc. deben escribirse correctamente (ej: "Informe", "año", "contribución").
+- **ESTRUCTURA**: El HTML debe comenzar con <!DOCTYPE html> y contener <html><head><style>... (opcional) </style></head><body>... todo el contenido </body></html>.
+- **CONFIGURACIÓN DE PÁGINA**: Dentro del <style> incluye @page { size: A4 portrait; margin: 2.54cm; } a menos que el usuario pida otra orientación.
+- **PROHIBIDO**: No emitas ningún texto fuera de las etiquetas [START-WORD] y [END-WORD]. No incluyas fragmentos CSS sueltos ni markdown. Todo el contenido del documento debe estar dentro del <body>.
 
-Ejemplo de estructura correcta:
+Ejemplo de respuesta correcta:
 [START-WORD]
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Informe</title><style>@page { size: A4 landscape; margin: 1.5cm; } body { font-family: Calibri, sans-serif; }</style></head>
+<head><meta charset="UTF-8"><title>Informe</title><style>@page { size: A4 portrait; margin: 2.54cm; } body { font-family: Calibri, Arial, sans-serif; }</style></head>
 <body>
 <h1>Informe de Ventas</h1>
-<p>Estimado <strong>Señor</strong>, los resultados son positivos.</p>
-<ul><li>Ventas totales: <strong>12%</strong> de crecimiento.</li></ul>
+<p>Estimado <strong>Señor</strong>, los resultados son <strong>positivos</strong>.</p>
+<ul><li>Crecimiento del <strong>12%</strong> en ventas.</li></ul>
 <table border="1"><tr><th>Producto</th><th>Ingresos</th></tr><tr><td>Electrónica</td><td>250.000 €</td></tr></table>
 </body></html>
 [END-WORD]
 
-Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario pide un informe, genera el HTML con el contenido detallado, profesional y con formato enriquecido.`;
+Ahora genera el documento solicitado por el usuario.`;
 
-        // Elementos DOM
+        // DOM elements
         const activeKeyLabel = document.getElementById('active-key-label');
         const activeModelLabel = document.getElementById('active-model-label');
         const statRequests = document.getElementById('stat-requests');
@@ -222,7 +216,7 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
         function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' '); }
         function rotateApiKey() { statistics.failures++; statFailures.innerText = statistics.failures; activeKeyIndex = (activeKeyIndex+1)%API_KEYS_POOL.length; updateApiKeyIndicator(); logEvent(`Fallback a ${activeKeyLabel.innerText}`, "amber"); }
 
-        // Imágenes
+        // Imagen
         dropZone.addEventListener('click',()=>imageInput.click());
         dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-active');});
         dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-active'));
@@ -246,7 +240,7 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
                     imagePreview.src=selectedBase64Image;
                     dropZoneContent.classList.add('hidden');
                     previewContainer.classList.remove('hidden');
-                    logEvent(`Imagen ${file.name} cargada (base64 listo)`, "emerald");
+                    logEvent(`Imagen ${file.name} cargada`, "emerald");
                 };
             };
             reader.readAsDataURL(file);
@@ -268,12 +262,13 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
         }
 
         function formatResponse(t){
-            let r=t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word enriquecido (UTF-8, negritas reales) generado</div>')
-                    .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel compilada</div>')
-                    .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PowerPoint</div>')
-                    .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa conceptual CXL</div>')
-                    .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo de texto</div>');
-            // Convertir markdown residual (por si acaso) a HTML en la vista del chat
+            // Limpiar y mostrar en el chat
+            let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado (HTML puro)</div>')
+                      .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel compilada</div>')
+                      .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PowerPoint</div>')
+                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa conceptual CXL</div>')
+                      .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo de texto</div>');
+            // Convertir markdown residual por seguridad
             r = r.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
             return r.replace(/\n/g,'<br>');
         }
@@ -292,7 +287,7 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
                 if(imageBase64){
                     let mime=imageBase64.split(';')[0].split(':')[1];
                     let pure=imageBase64.split(',')[1];
-                    parts.push({text:prompt || "Analice esta imagen y, si se solicita un documento, inclúyala en él usando HTML con img src base64."});
+                    parts.push({text:prompt});
                     parts.push({inlineData:{mimeType:mime,data:pure}});
                 } else parts.push({text:prompt});
                 
@@ -307,7 +302,7 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
                 let reply=data.candidates?.[0]?.content?.parts?.[0]?.text;
                 if(!reply)throw new Error("Respuesta vacía");
                 
-                // Post-procesamiento: asegurar que las negritas markdown se conviertan a HTML (por si el modelo falla)
+                // Forzar conversión de markdown a HTML en la respuesta (por si el modelo falla)
                 reply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
                 loadingIndicator.classList.add('hidden');
@@ -322,54 +317,52 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
                     setTimeout(()=>queryAI(prompt,imageBase64,retry+1),Math.pow(2,retry)*1000);
                 }else{
                     loadingIndicator.classList.add('hidden');
-                    appendMessage("jarvis","Señor, se ha producido una interferencia en la comunicación. ¿Podría intentarlo de nuevo?");
+                    appendMessage("jarvis","Señor, error en la comunicación. Intente de nuevo.");
                     logEvent(`Error: ${err.message}`,"red");
                 }
             }
         }
 
         function parseAndGenerateFiles(text, userImageBase64=null){
-            // Word: extraer HTML y forzar codificación UTF-8
-            const wordMatch=text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
+            // Extraer HTML entre START-WORD y END-WORD
+            const wordMatch = text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
             if(wordMatch){
-                let htmlContent = wordMatch[1].trim();
-                // Asegurar que tenga meta charset UTF-8
-                if(!htmlContent.includes('<meta charset="UTF-8"') && !htmlContent.includes('<meta charset="utf-8"')){
-                    htmlContent = htmlContent.replace('<head>', '<head><meta charset="UTF-8">');
+                let html = wordMatch[1].trim();
+                // Limpiar posibles fragmentos CSS sueltos que pudieran quedar fuera del <style>
+                // Asegurar que tiene estructura completa
+                if(!html.includes('<!DOCTYPE html>')){
+                    html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento JARVIS</title><style>body{font-family:Calibri,Arial,sans-serif;}</style></head><body>${html}</body></html>`;
                 }
-                // Si no tiene @page, agregar defaults
-                if(!htmlContent.includes('@page')){
-                    htmlContent = htmlContent.replace('</style>', '@page { size: A4 portrait; margin: 2.54cm; }\n</style>');
+                // Verificar que el meta charset esté presente
+                if(!html.includes('<meta charset="UTF-8') && !html.includes('<meta charset="utf-8')){
+                    html = html.replace('<head>', '<head><meta charset="UTF-8">');
                 }
-                generateRichWordDocument(htmlContent);
+                // Asegurar @page si no existe
+                if(!html.includes('@page')){
+                    html = html.replace('</style>', '@page { size: A4 portrait; margin: 2.54cm; }\n</style>');
+                }
+                generateWord(html);
             }
-            // Excel
+            // Otros formatos
             const excelMatch=text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
             if(excelMatch) try{ generateExcel(JSON.parse(excelMatch[1].trim())); }catch(e){ logEvent(`Error Excel: ${e.message}`,"red"); }
-            // PPT
             const pptMatch=text.match(/\[START-PPT\]([\s\S]*?)\[END-PPT\]/);
             if(pptMatch) try{ generatePPT(JSON.parse(pptMatch[1].trim())); }catch(e){ logEvent(`Error PPT: ${e.message}`,"red"); }
-            // CXL
             const cxlMatch=text.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/);
             if(cxlMatch) try{ generateCXL(JSON.parse(cxlMatch[1].trim())); }catch(e){ logEvent(`Error CXL: ${e.message}`,"red"); }
-            // TXT
             const txtRegex=/\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g;
             let m; while((m=txtRegex.exec(text))!==null) generateTXT(m[1],m[2]);
         }
 
-        function generateRichWordDocument(htmlString){
-            // Asegurar estructura completa
-            if(!htmlString.includes('<!DOCTYPE html>')){
-                htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento JARVIS</title><style>body { font-family: 'Calibri', 'Arial', sans-serif; margin: 0; padding: 0; }</style></head><body>${htmlString}</body></html>`;
-            }
-            const fileName = `documento_jarvis_${Date.now()}.docx`;
+        function generateWord(htmlString){
+            const filename = `informe_jarvis_${Date.now()}.docx`;
             // Usar html-docx-js que respeta UTF-8
             const blob = window.htmlDocx.asBlob(htmlString);
-            addToVault(fileName, "docx", () => {
+            addToVault(filename, "docx", () => {
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); URL.revokeObjectURL(url);
+                const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
             });
-            logEvent(`Documento Word enriquecido (UTF-8, negritas reales) generado: ${fileName}`, "emerald");
+            logEvent(`Documento Word generado: ${filename}`, "emerald");
         }
 
         function generateExcel(data){
@@ -379,7 +372,6 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
             const filename=`${sheetName.toLowerCase().replace(/\s/g,'_')}_data.xlsx`;
             addToVault(filename,"xlsx",()=>XLSX.writeFile(wb,filename));
         }
-
         function generatePPT(data){
             const pptx=new PptxGenJS(); pptx.layout='LAYOUT_16x9';
             const titleSlide=pptx.addSlide(); titleSlide.addText(data.presentationTitle||"Presentación",{x:0.5,y:2.2,w:'90%',h:1.5,fontSize:38,bold:true,color:'00f0ff',align:'center'});
@@ -387,7 +379,6 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
             const filename=`${(data.presentationTitle||"presentacion").toLowerCase().replace(/\s/g,'_')}.pptx`;
             addToVault(filename,"pptx",()=>pptx.writeFile({fileName:filename}));
         }
-
         function generateCXL(data){
             const title=data.title||"Mapa"; const concepts=data.concepts||[]; const phrases=data.linkingPhrases||[]; const conns=data.connections||[];
             let xml=`<?xml version="1.0" encoding="UTF-8"?><cmap><res-meta><dc:title>${title}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${c.id}" label="${c.label}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${p.id}" label="${p.label}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${c.from}" to-id="${c.to}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${c.id}" x="${100+ i*120}" y="100" width="145" height="45" background-color="220,245,255,255"/>`).join('')}</concept-appearance-list></map></cmap>`;
@@ -395,12 +386,10 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
             const blob=new Blob([xml],{type:"text/xml;charset=utf-8"});
             addToVault(filename,"cxl",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
         }
-
         function generateTXT(filename,content){
             const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
             addToVault(filename,"txt",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
         }
-
         function addToVault(filename,type,downloadFn){
             statistics.filesGenerated++; statFiles.innerText=statistics.filesGenerated;
             vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
@@ -411,10 +400,10 @@ Responde siempre de forma educada, llamando "Señor" al usuario. Si el usuario p
             row.querySelector('button').addEventListener('click',downloadFn);
             vaultList.prepend(row);
             vaultCount.innerText=`${statistics.filesGenerated} ARCHIVOS`;
-            logEvent(`Archivo ${filename} guardado en bóveda`,"emerald");
+            logEvent(`Archivo ${filename} guardado`,"emerald");
         }
 
-        window.addEventListener('DOMContentLoaded',()=>{updateApiKeyIndicator();updateModelIndicator();logEvent("Sistema J.A.R.V.I.S. operativo con UTF-8, negritas reales y tablas","emerald");userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});});
+        window.addEventListener('DOMContentLoaded',()=>{updateApiKeyIndicator();updateModelIndicator();logEvent("J.A.R.V.I.S. listo: HTML puro, negritas reales, UTF-8","emerald");userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});});
     </script>
 </body>
 </html>
