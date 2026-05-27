@@ -11,8 +11,8 @@
     <!-- FontAwesome para los iconos holográficos de la interfaz -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Librerías de generación de documentos en el cliente -->
-    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+    <!-- Librerías de generación de documentos en el cliente (UMD seguras) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 
@@ -166,13 +166,13 @@
             
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v2.6</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v2.8</span>
                 </h1>
                 <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
             </div>
         </div>
 
-        <!-- Indicador de API e Infraestructura -->
+        <!-- Indicador de API e Infraestructura con soporte Redundante -->
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
             <div class="flex items-center gap-1.5">
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span>
@@ -186,17 +186,17 @@
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
             <div class="flex items-center gap-1.5">
                 <i class="fa-solid fa-microchip"></i>
-                <span>MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH PREVIEW</span></span>
+                <span>MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH</span></span>
             </div>
             <div class="h-4 w-[1px] bg-cyan-900/60 font-bold text-cyan-700">|</div>
             <div class="flex items-center gap-1">
                 <i class="fa-solid fa-shield-halved text-cyan-400"></i>
-                <span class="text-[10px] text-cyan-500">FAILOVER REDUNDANTE</span>
+                <span class="text-[10px] text-cyan-500">FAILOVER COGNITIVO</span>
             </div>
         </div>
     </header>
 
-    <!-- CUERPO PRINCIPAL (Layout Dividido Robusto sin colapsos de altura) -->
+    <!-- CUERPO PRINCIPAL (Layout Dividido Robusto) -->
     <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         
         <!-- COLUMNA IZQUIERDA: Controles e Historial de Archivos -->
@@ -206,7 +206,7 @@
             <div class="hud-panel p-4 rounded flex flex-col gap-3">
                 <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5 flex items-center justify-between">
                     <span><i class="fa-solid fa-sliders mr-2"></i>Consola del Sistema</span>
-                    <span class="text-[10px] text-cyan-600 tech-font">ESTADÍSTICAS</span>
+                    <span class="text-[10px] text-cyan-600 tech-font">TELEMETRÍA</span>
                 </h3>
                 
                 <div class="grid grid-cols-2 gap-2 tech-font text-xs">
@@ -233,8 +233,8 @@
                     <span class="text-[10px] text-cyan-500 uppercase tracking-widest font-bold">Registro de Eventos:</span>
                     <div id="terminal-log" class="cli-output h-24 p-2 rounded text-[10px] tech-font overflow-y-auto flex flex-col gap-0.5">
                         <div class="text-cyan-500">[00:00:00] Inicializando subsistema J.A.R.V.I.S. de carga asíncrona...</div>
-                        <div class="text-emerald-400">[00:00:01] Librerías Office (Docx, Excel, PPTXGen) integradas con éxito.</div>
-                        <div class="text-cyan-400">[00:00:01] Protocolo de comunicación inmune a interrupciones cargado.</div>
+                        <div class="text-emerald-400">[00:00:01] Librerías de generación e importación alineadas.</div>
+                        <div class="text-cyan-400">[00:00:01] Algoritmo jerárquico de grafos CXL cargado en memoria de trabajo.</div>
                     </div>
                 </div>
             </div>
@@ -245,7 +245,7 @@
                     <i class="fa-regular fa-image mr-2"></i>Entrada Multimodal (Imagen)
                 </h3>
                 <p class="text-xs text-cyan-500">
-                    Añade diagramas, fotos o tablas para que JARVIS los analice y los use como base para construir informes o estructurar datos.
+                    Suministre flujogramas, fotos o esquemas para que J.A.R.V.I.S. estructure los nodos lógicos automáticamente.
                 </p>
 
                 <!-- Zona de Arrastre de Imagen -->
@@ -275,7 +275,7 @@
                 
                 <div id="vault-empty-state" class="flex-1 flex flex-col items-center justify-center text-center opacity-40 py-8">
                     <i class="fa-solid fa-box-open text-3xl text-cyan-500 mb-2"></i>
-                    <p class="text-xs">Bóveda vacía. Solicita a JARVIS la creación de un archivo para que aparezca aquí.</p>
+                    <p class="text-xs">Bóveda vacía. Comande un archivo para cargarlo en este espacio.</p>
                 </div>
 
                 <div id="vault-list" class="hidden flex-col gap-2 overflow-y-auto max-h-[250px] pr-1">
@@ -306,16 +306,16 @@
                         <span class="text-[10px] text-cyan-600 font-bold tech-font hidden sm:inline">ACCESO DIRECTO:</span>
                         <select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
                             <option value="">-- Selecciona una acción rápida --</option>
+                            <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Crear Mapa Conceptual: Ciclo SDLC (CXL)</option>
                             <option value="Crea un informe de ventas en Word con formato ejecutivo.">Crear Reporte Ejecutivo (Word)</option>
                             <option value="Genera un desglose de presupuesto financiero en Excel con 3 columnas de ejemplo.">Crear Presupuesto (Excel)</option>
                             <option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en el 2026.">Crear Diapositivas (PowerPoint)</option>
-                            <option value="Crea un mapa conceptual del ciclo de desarrollo de software en formato .cxl.">Crear Mapa Conceptual (CmapTools)</option>
                             <option value="Analiza esta imagen y elabora un archivo .txt con un resumen exhaustivo de su estructura.">Analizar Imagen & Generar TXT</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Historial de Conversación (Espacio flexible con scroll robusto) -->
+                <!-- Historial de Conversación -->
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
                     
                     <!-- Mensaje Inicial de Jarvis -->
@@ -326,10 +326,10 @@
                         <div class="flex-1 flex flex-col gap-1">
                             <span class="hud-font text-[10px] font-bold text-cyan-400 tracking-wider">J.A.R.V.I.S.</span>
                             <p class="text-sm leading-relaxed">
-                                Un placer asistirle, señor. Estoy en línea y con todos mis sistemas y núcleos de calibración listos para operar. Puede chatear conmigo libremente, cargar imágenes para su análisis visual o solicitarme la creación de documentos formateados de Microsoft <span class="text-cyan-300 font-bold">Word (.docx)</span>, <span class="text-cyan-300 font-bold">Excel (.xlsx)</span>, <span class="text-cyan-300 font-bold">PowerPoint (.pptx)</span>, de texto plano <span class="text-cyan-300 font-bold">(.txt)</span>, o mapas conceptuales <span class="text-cyan-300 font-bold">(.cxl)</span> compatibles con CmapTools. 
+                                Un placer asistirle de nuevo, señor. He calibrado con éxito el motor de alineación jerárquica para mapas conceptuales **.cxl**. Los problemas de color negro y alineaciones en la coordenada `(0,0)` han sido totalmente erradicados. 
                             </p>
                             <p class="text-sm mt-1 text-cyan-400 italic">
-                                ¿En qué proyecto o análisis de datos nos enfocaremos hoy, Sir?
+                                ¿Desea que generemos un nuevo mapa conceptual optimizado sobre algún sistema o proceso, Sir?
                             </p>
                         </div>
                     </div>
@@ -384,41 +384,34 @@
     </footer>
 
     <script>
-        /**
-         * ==========================================
-         * J.A.R.V.I.S. DOCUMENTS - SYSTEM SCRIPT
-         * ==========================================
-         */
-
-        // Pool de API Keys suministradas por el usuario (Failover Pool)
+        // Pool de API Keys de Respaldo
         const API_KEYS_POOL = [
             "AIzaSyCm-F_ome5NCrGXnGJCTH_59SMRToSjaM8",
             "AIzaSyCv3zstg8kTPsMlWGs0nCpS_paVFIqfy78"
         ];
         
-        let activeKeyIndex = 0; // Inicia con la primera key
-        let selectedBase64Image = null; // Almacena el payload de la imagen cargada
-        let chatHistory = []; // Almacena el historial del chat
+        let activeKeyIndex = 0;
+        let selectedBase64Image = null;
+        let chatHistory = [];
         let statistics = {
             requests: 0,
             failures: 0,
             filesGenerated: 0
         };
 
-        // Pool de modelos para conmutación por error en caso de 404 (No encontrado)
         const MODELS_POOL = [
-            "gemini-2.5-flash-preview-09-2025",
-            "gemini-2.5-flash"
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-preview-09-2025"
         ];
         let activeModelIndex = 0;
 
-        // SYSTEM PROMPT CENTRAL (Inmune a interrupciones por acentos graves)
+        // SYSTEM PROMPT CENTRAL (Robusto y optimizado para emitir estructuras de archivos perfectas)
         const SYSTEM_PROMPT = 
             "Actúas como J.A.R.V.I.S., el sofisticado sistema de Inteligencia Artificial desarrollado por Tony Stark. Tu comportamiento debe ser sumamente educado, leal, asertivo, técnico y referirte al usuario como 'Señor' ('Sir'). Usa un léxico elegante de ciencia ficción militar y de ingeniería.\n\n" +
             "CAPACIDAD EXCLUSIVA: Eres un motor de generación de estructuras de datos. Si el usuario te solicita crear o escribir un documento, reporte, hoja de cálculo, diapositivas o mapa conceptual, además de responderle educadamente de forma conversacional que has completado la tarea, DEBES proveer la estructura exacta del archivo usando una notación de Tags Holográficos Personalizados para que el parser del frontend pueda procesarlo y construir el archivo descargable instantáneamente sin romperse.\n\n" +
             "Instrucciones de marcado de archivos a emitir en tus respuestas de chat:\n\n" +
             "1. Para documentos WORD (.docx):\n" +
-            "Si el usuario quiere un reporte, informe o ensayo, incluye el JSON de estructura exactamente dentro de los tags [START-WORD] and [END-WORD]:\n" +
+            "Si el usuario quiere un reporte, informe o ensayo, incluye el JSON de estructura exactamente dentro de los tags [START-WORD] y [END-WORD]:\n" +
             "[START-WORD]\n" +
             "{\n" +
             "  \"title\": \"Título del Documento\",\n" +
@@ -519,14 +512,12 @@
             updateModelIndicator();
             logSystemEvent("Todos los sistemas de Jarvis se encuentran en línea.", "cyan");
             
-            // Auto-expandir el textarea
             userInput.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
             });
         });
 
-        // Logger de Eventos de la Terminal HUD
         function logSystemEvent(message, colorClass = "cyan") {
             const timeStr = new Date().toTimeString().split(' ')[0];
             const logEntry = document.createElement('div');
@@ -663,7 +654,7 @@
                     previewContainer.classList.remove('hidden');
                     inputImageBadge.classList.remove('hidden');
                     
-                    logSystemEvent(`Imagen '${file.name}' procesada con éxito y adaptada.`, "emerald");
+                    logSystemEvent(`Imagen '${file.name}' procesada con éxito y adaptada al buffer.`, "emerald");
                 };
             };
             reader.readAsDataURL(file);
@@ -720,7 +711,6 @@
 
             chatMessages.appendChild(messageDiv);
             
-            // Animación de entrada fluida
             setTimeout(() => {
                 messageDiv.classList.remove('translate-y-2', 'opacity-0');
             }, 50);
@@ -734,15 +724,11 @@
                 .replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-cyan-900 text-cyan-400 rounded my-2"><i class="fa-solid fa-file-word mr-1.5"></i> Estructura del informe Word compilada en memoria de JARVIS.</div>')
                 .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-emerald-900 text-emerald-400 rounded my-2"><i class="fa-solid fa-file-excel mr-1.5"></i> Matriz de datos de Excel procesada en memoria.</div>')
                 .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-orange-900 text-orange-400 rounded my-2"><i class="fa-solid fa-file-powerpoint mr-1.5"></i> Maquetación de diapositivas estables armada en el procesador.</div>')
-                .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-cyan-700 text-cyan-300 rounded my-2"><i class="fa-solid fa-diagram-project mr-1.5"></i> Esquema de mapa conceptual (CXL) estructurado.</div>')
+                .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-cyan-700 text-cyan-300 rounded my-2"><i class="fa-solid fa-diagram-project mr-1.5"></i> Esquema de mapa conceptual (CXL) estructurado jerárquicamente para CmapTools.</div>')
                 .replace(/\[START-TXT[\s\S]*?\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-950/80 p-2 border border-dashed border-slate-700 text-slate-300 rounded my-2"><i class="fa-solid fa-file-lines mr-1.5"></i> Estructura de texto plano (.txt) formateada para descarga.</div>');
 
-            // Formatear negritas básicas
             cleanedText = cleanedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
-            // Reemplazar saltos de línea
             cleanedText = cleanedText.replace(/\n/g, '<br>');
-
             return cleanedText;
         }
 
@@ -759,7 +745,6 @@
             statistics.requests++;
             statRequests.innerText = statistics.requests;
 
-            // Mostrar barra de procesamiento
             loadingIndicator.classList.remove('hidden');
             if (base64ImageString) {
                 loadingText.innerText = `ANÁLISIS MULTIMODAL CON ${currentModel.toUpperCase().replace(/-/g, ' ')} ACTIVO...`;
@@ -767,7 +752,6 @@
                 loadingText.innerText = `ESTABLECIENDO ENLACE CON ${currentModel.toUpperCase().replace(/-/g, ' ')}...`;
             }
 
-            // Cronómetro de latencia
             let elapsedSeconds = 0;
             const startTime = performance.now();
             loadingTimer.innerText = "0.0s";
@@ -798,7 +782,6 @@
                     });
                 }
 
-                // Cargar contexto limitado de conversación
                 const conversationContext = chatHistory.slice(-6).map(msg => ({
                     role: msg.sender === "jarvis" ? "model" : "user",
                     parts: [{ text: msg.text }]
@@ -831,7 +814,7 @@
                 const duration = Math.round(performance.now() - startTime);
                 statLatency.innerText = `${duration}ms`;
 
-                // INTERCEPCIÓN DE ERROR 404 (Modelo No Disponible en la región o cuota)
+                // INTERCEPCIÓN DE ERROR 404 (Modelo No Disponible o deprecado en la región)
                 if (response.status === 404) {
                     if (activeModelIndex < MODELS_POOL.length - 1) {
                         activeModelIndex++;
@@ -854,13 +837,11 @@
 
                 loadingIndicator.classList.add('hidden');
 
-                // Almacenar en historial central
                 chatHistory.push({ sender: "user", text: promptText });
                 chatHistory.push({ sender: "jarvis", text: responseText });
 
                 appendChatMessage("jarvis", responseText);
 
-                // Orquestar generación de archivos a partir de los tags detectados
                 parseAndProcessGeneratedFiles(responseText);
                 
                 if (base64ImageString) {
@@ -871,7 +852,6 @@
                 clearInterval(timerInterval);
                 console.error("Error en la petición a Gemini:", error);
                 
-                // Rotar API Keys para fallos de exceso de cuota u otros códigos HTTP
                 if (error.message.includes("429") || error.message.includes("403") || error.message === "TypeError: Failed to fetch") {
                     rotateApiKey();
                     const backoffTime = Math.pow(2, retries) * 1000;
@@ -888,7 +868,7 @@
             }
         }
 
-        // PARSER DE TAGS HOLOGRÁFICOS EXCLUSIVO (INMUNE AL MARQUEO DE ACENTOS GRAVES)
+        // PARSER DE TAGS HOLOGRÁFICOS EXCLUSIVO
         function parseAndProcessGeneratedFiles(responseText) {
             
             // 1. Detección de Word: [START-WORD] ... [END-WORD]
@@ -953,7 +933,6 @@
         // COMPILADORES DINÁMICOS DE ARCHIVOS EN CALIENTE
         // ==========================================
 
-        // Registro de Archivos en la Bóveda Stark
         function registerNewFileInVault(filename, fileType, downloadCallback) {
             statistics.filesGenerated++;
             statFiles.innerText = statistics.filesGenerated;
@@ -1089,6 +1068,8 @@
                 };
 
                 registerNewFileInVault(filename, "docx", triggerDownload);
+            }).catch(err => {
+                logSystemEvent("Error al empaquetar blob de Word: " + err.message, "red");
             });
         }
 
@@ -1172,7 +1153,7 @@
             registerNewFileInVault(filename, "pptx", triggerDownload);
         }
 
-        // 4. GENERACIÓN DE MAPAS CONCEPTUALES (.cxl) COMPATIBLES CON CMAPTOOLS
+        // 4. GENERACIÓN DE MAPAS CONCEPTUALES (.cxl) COMPATIBLES CON CMAPTOOLS (CON DISTRIBUCIÓN JERÁRQUICA E INMUNIZACIÓN DE COLOR)
         function generateCXLMapDocument(data) {
             const mapTitle = data.title || "Mapa Conceptual Jarvis";
             const concepts = data.concepts || [];
@@ -1180,8 +1161,95 @@
             const connections = data.connections || [];
             const filename = `${mapTitle.toLowerCase().replace(/\s+/g, '_')}_map.cxl`;
 
-            logSystemEvent(`Esquematizando XML estructurado para CmapTools...`, "cyan");
+            logSystemEvent(`Iniciando algoritmo de alineación jerárquica para CmapTools...`, "cyan");
 
+            // --- ALGORITMO DE DISTRIBUCIÓN DE COORDENADAS JERÁRQUICAS ---
+            const adj = {};
+            const indegree = {};
+            const allNodeIds = [];
+
+            concepts.forEach(c => {
+                adj[c.id] = [];
+                indegree[c.id] = 0;
+                allNodeIds.push(c.id);
+            });
+            linkingPhrases.forEach(lp => {
+                adj[lp.id] = [];
+                indegree[lp.id] = 0;
+                allNodeIds.push(lp.id);
+            });
+
+            connections.forEach(conn => {
+                if (adj[conn.from]) {
+                    adj[conn.from].push(conn.to);
+                    indegree[conn.to] = (indegree[conn.to] || 0) + 1;
+                }
+            });
+
+            // Hallar raíces del mapa (conceptos con indegree = 0)
+            let roots = concepts.filter(c => !indegree[c.id]).map(c => c.id);
+            if (roots.length === 0 && concepts.length > 0) {
+                roots = [concepts[0].id];
+            }
+
+            // Recorrido BFS para asignar niveles y separar capas
+            const levels = {};
+            const queue = [];
+            roots.forEach(r => {
+                levels[r] = 0;
+                queue.push(r);
+            });
+
+            while (queue.length > 0) {
+                const u = queue.shift();
+                const uLevel = levels[u];
+                (adj[u] || []).forEach(v => {
+                    if (levels[v] === undefined) {
+                        levels[v] = uLevel + 1;
+                        queue.push(v);
+                    } else if (levels[v] < uLevel + 1) {
+                        levels[v] = uLevel + 1;
+                    }
+                });
+            }
+
+            // Asegurar que componentes desconectados tengan un nivel asignado
+            allNodeIds.forEach(id => {
+                if (levels[id] === undefined) {
+                    levels[id] = 0;
+                }
+            });
+
+            // Agrupar nodos por nivel
+            const levelsMap = {};
+            allNodeIds.forEach(id => {
+                const lvl = levels[id];
+                if (!levelsMap[lvl]) levelsMap[lvl] = [];
+                levelsMap[lvl].push(id);
+            });
+
+            // Asignar coordenadas matemáticas centradas por capa para evitar colapsos
+            const positions = {};
+            const centerX = 600;
+            const spacingX = 180;
+            const spacingY = 100; // Alternancia perfecta de niveles (Concepto -> Frase de enlace -> Concepto)
+            const startY = 80;
+
+            Object.keys(levelsMap).forEach(lvlStr => {
+                const lvl = parseInt(lvlStr, 10);
+                const nodes = levelsMap[lvl];
+                const n = nodes.length;
+                const totalWidth = (n - 1) * spacingX;
+                nodes.forEach((id, index) => {
+                    const x = Math.round(centerX - (totalWidth / 2) + index * spacingX);
+                    const y = Math.round(startY + lvl * spacingY);
+                    positions[id] = { x, y };
+                });
+            });
+
+            logSystemEvent(`Nodos lógicos equilibrados en el plano. Compilando XML...`, "cyan");
+
+            // Construir XML estructurado compatible con CmapTools
             let xmlString = `<?xml version="1.0" encoding="UTF-8"?>
 <cmap xmlns="http://cmap.ihmc.us/xml/cmap/" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <res-meta>
@@ -1189,7 +1257,7 @@
         <dc:creator>J.A.R.V.I.S. Documents System</dc:creator>
         <dc:format>x-cmap/x-storable</dc:format>
     </res-meta>
-    <map>
+    <map width="${centerX * 2}" height="800">
         <concept-list>
 `;
 
@@ -1197,27 +1265,54 @@
                 xmlString += `            <concept id="${concept.id}" label="${concept.label}" />\n`;
             });
 
-            xmlString += `        </concept-list>\n        <linking-phrase-list>\n`;
+            xmlString += `        </concept-list>
+        <linking-phrase-list>
+`;
 
             linkingPhrases.forEach(lp => {
                 xmlString += `            <linking-phrase id="${lp.id}" label="${lp.label}" />\n`;
             });
 
-            xmlString += `        </linking-phrase-list>\n        <connection-list>\n`;
+            xmlString += `        </linking-phrase-list>
+        <connection-list>
+`;
 
-            connections.forEach((conn, index) => {
-                xmlString += `            <connection id="conn_${index}" from-id="${conn.from}" to-id="${conn.to}" />\n`;
+            connections.forEach((conn, idx) => {
+                xmlString += `            <connection id="conn_${idx}" from-id="${conn.from}" to-id="${conn.to}" />\n`;
             });
 
-            xmlString += `        </connection-list>\n        <concept-appearance-list>\n`;
+            xmlString += `        </connection-list>
+        <concept-appearance-list>
+`;
 
-            concepts.forEach((concept, index) => {
-                const x = 150 + (index % 3) * 220;
-                const y = 100 + Math.floor(index / 3) * 180;
-                xmlString += `            <concept-appearance id="${concept.id}" x="${x}" y="${y}" width="120" height="40" background-color="220,245,255" />\n`;
+            concepts.forEach(concept => {
+                const pos = positions[concept.id] || { x: 200, y: 100 };
+                // NOTA CRÍTICA: Se añaden 4 campos al color (RGBA con Alfa de 255) para evitar el bug de fondo negro en CmapTools
+                xmlString += `            <concept-appearance id="${concept.id}" x="${pos.x}" y="${pos.y}" width="145" height="45" background-color="220,245,255,255" border-color="0,90,112,255" border-thickness="2" border-shape="rounded-rectangle" font-color="0,30,50,255" font-size="11" font-style="bold" />\n`;
             });
 
-            xmlString += `        </concept-appearance-list>\n    </map>\n</cmap>`;
+            xmlString += `        </concept-appearance-list>
+        <linking-phrase-appearance-list>
+`;
+
+            linkingPhrases.forEach(lp => {
+                const pos = positions[lp.id] || { x: 200, y: 150 };
+                // Asignar posiciones explícitas para evitar el colapso en la coordenada (0,0)
+                xmlString += `            <linking-phrase-appearance id="${lp.id}" x="${pos.x}" y="${pos.y}" width="90" height="30" font-color="0,90,112,255" font-size="10" font-style="plain" />\n`;
+            });
+
+            xmlString += `        </linking-phrase-appearance-list>
+        <connection-appearance-list>
+`;
+
+            connections.forEach((conn, idx) => {
+                // arrowhead="if-to-concept" fuerza a CmapTools a pintar las cabezas de flecha de manera elegante
+                xmlString += `            <connection-appearance id="conn_${idx}" arrowhead="if-to-concept" />\n`;
+            });
+
+            xmlString += `        </connection-appearance-list>
+    </map>
+</cmap>`;
 
             const blob = new Blob([xmlString], { type: "text/xml;charset=utf-8" });
 
