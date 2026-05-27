@@ -11,7 +11,7 @@
     <!-- Librerías de generación de documentos -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-    <!-- NUEVA LIBRERÍA PARA WORD: html-docx-js (más ligera y fiable) -->
+    <!-- html-docx-js para Word enriquecido -->
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
 
     <style>
@@ -77,9 +77,9 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v3.0</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v3.5</span>
                 </h1>
-                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
+                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Generador de Documentos con Formato Enriquecido</p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
@@ -112,6 +112,7 @@
                     <div id="drop-zone-content" class="text-center"><i class="fa-solid fa-cloud-arrow-up text-2xl text-cyan-400 mb-2 animate-pulse"></i><span class="text-xs text-cyan-300">Arrastra imagen o haz clic</span></div>
                     <div id="preview-container" class="hidden w-full flex-col items-center gap-2"><img id="image-preview" class="max-h-32 border border-cyan-400 rounded-md" /><button id="remove-image-btn" class="text-[11px] bg-red-950/60 border border-red-800 text-red-400 px-3 py-1 rounded"><i class="fa-solid fa-trash-can"></i> Remover</button></div>
                 </div>
+                <p class="text-[10px] text-cyan-600 mt-2">La imagen se puede incluir en el documento Word si lo solicitas.</p>
             </div>
 
             <div class="hud-panel p-4 rounded flex-1">
@@ -129,7 +130,7 @@
                     <select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300">
                         <option value="">-- Acción rápida --</option>
                         <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Mapa SDLC (CXL)</option>
-                        <option value="Crea un informe de ventas en Word con formato ejecutivo.">Reporte ejecutivo (Word)</option>
+                        <option value="Crea un informe de ventas en Word con formato ejecutivo. El documento debe tener orientación horizontal, márgenes de 1.5cm, e incluir negritas, viñetas y una tabla de resumen.">Reporte ejecutivo avanzado (Word)</option>
                         <option value="Genera un desglose de presupuesto financiero en Excel con 3 columnas de ejemplo.">Presupuesto (Excel)</option>
                         <option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en el 2026.">Diapositivas IA (PPT)</option>
                     </select>
@@ -137,19 +138,19 @@
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
                     <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3">
                         <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>
-                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, he actualizado mi motor de generación de documentos. Ahora uso una librería más estable para archivos Word. ¿En qué puedo asistirle?</p></div>
+                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, he mejorado mi capacidad de generación de documentos Word. Ahora puedo aplicar <strong>negritas reales</strong>, <em>cursivas</em>, listas con viñetas, imágenes incrustadas, tablas, y configurar tamaño de página, orientación y márgenes. ¿Qué desea crear hoy?</p></div>
                     </div>
                 </div>
                 <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
                 <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2">
-                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Comande a JARVIS..."></textarea>
+                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ejemplo: 'Crea un informe de ventas con orientación horizontal, incluye una tabla comparativa y una imagen del logo de Stark Industries (usa una URL de ejemplo si no hay imagen)'"></textarea>
                     <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
     </main>
 
-    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">SISTEMA J.A.R.V.I.S. — PROTOCOLO MULTIMODAL ACTIVO</footer>
+    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">SISTEMA J.A.R.V.I.S. — PROTOCOLO MULTIMODAL AVANZADO</footer>
 
     <script>
         // ---------- CONFIGURACIÓN API ----------
@@ -161,13 +162,27 @@
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
         let activeModelIndex = 0;
 
-        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de Tony Stark. Debes generar documentos usando etiquetas específicas. 
-        - WORD: [START-WORD]{"title":"...","subtitle":"...","sections":[{"heading":"...","paragraphs":["..."]}]}[END-WORD]
-        - EXCEL: [START-EXCEL]{"sheetName":"...","headers":["A","B"],"rows":[["v1","v2"]]}[END-EXCEL]
-        - PPT: [START-PPT]{"presentationTitle":"...","slides":[{"title":"...","bullets":["..."]}]}[END-PPT]
-        - CXL: [START-CXL]{"title":"...","concepts":[{"id":"c1","label":"Raíz"}],"linkingPhrases":[{"id":"lp1","label":"conecta"}],"connections":[{"from":"c1","to":"lp1"}]}[END-CXL]
-        - TXT: [START-TXT filename="archivo.txt"]contenido[END-TXT]
-        Genera respuestas detalladas y profesionales. Siempre refiérete al usuario como "Señor" o "Sir".`;
+        // PROMPT DE SISTEMA MEJORADO PARA DOCUMENTOS WORD ENRIQUECIDOS
+        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de inteligencia artificial de Tony Stark. Tu misión es generar documentos profesionales con formato avanzado.
+Para los documentos Word (.docx), debes producir código HTML completo (con estilos CSS inline o en bloque) dentro de las etiquetas [START-WORD] y [END-WORD]. El HTML debe incluir:
+
+1. **Negritas reales**: usando <strong> o <b>.
+2. **Cursivas**: <em> o <i>.
+3. **Viñetas y listas**: <ul><li>...</li></ul> para listas desordenadas, <ol><li>...</li></ol> para ordenadas.
+4. **Imágenes**: Si el usuario proporciona una imagen en el chat (base64), incrústala usando <img src="data:image/jpeg;base64,..." />. Si no, puedes usar URLs de ejemplo con "https://picsum.photos/200/150".
+5. **Tablas**: <table border="1" cellpadding="5" style="border-collapse:collapse;"> para datos tabulares.
+6. **Configuración de página**: Debes respetar las peticiones del usuario sobre orientación (vertical/horizontal), tamaño de hoja (A4, Carta) y márgenes. Agrega un bloque <style> al inicio del HTML con las reglas @page, por ejemplo:
+   @page { size: A4 landscape; margin: 1.5cm; }
+   Si el usuario no especifica, usa por defecto: tamaño A4 vertical, márgenes 2.54cm.
+7. **Estilos generales**: Usa una tipografía profesional (Arial, Calibri, Times New Roman) y colores sobrios.
+
+Además, puedes generar otros tipos de documentos con sus respectivas etiquetas:
+- EXCEL: [START-EXCEL]{"sheetName":"...","headers":["A","B"],"rows":[[...]]}[END-EXCEL]
+- PPT: [START-PPT]{"presentationTitle":"...","slides":[...]}[END-PPT]
+- CXL: [START-CXL]{"title":"...","concepts":[...],"linkingPhrases":[...],"connections":[...]}[END-CXL]
+- TXT: [START-TXT filename="archivo.txt"]contenido[END-TXT]
+
+Siempre refiérete al usuario como "Señor" o "Sir". Responde de manera educada y técnica.`;
 
         // Elementos DOM
         const activeKeyLabel = document.getElementById('active-key-label');
@@ -231,7 +246,7 @@
                     imagePreview.src=selectedBase64Image;
                     dropZoneContent.classList.add('hidden');
                     previewContainer.classList.remove('hidden');
-                    logEvent(`Imagen ${file.name} cargada`, "emerald");
+                    logEvent(`Imagen ${file.name} cargada (base64 listo para incrustar)`, "emerald");
                 };
             };
             reader.readAsDataURL(file);
@@ -253,7 +268,7 @@
         }
 
         function formatResponse(t){
-            let r=t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
+            let r=t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word enriquecido generado</div>')
                     .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel compilada</div>')
                     .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PowerPoint</div>')
                     .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g,'<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa conceptual CXL</div>')
@@ -275,9 +290,11 @@
                 if(imageBase64){
                     let mime=imageBase64.split(';')[0].split(':')[1];
                     let pure=imageBase64.split(',')[1];
-                    parts.push({text:prompt||"Analice esta imagen en detalle."});
+                    parts.push({text:prompt || "Analice esta imagen y, si se solicita un documento, inclúyala en él."});
                     parts.push({inlineData:{mimeType:mime,data:pure}});
-                }else parts.push({text:prompt});
+                } else parts.push({text:prompt});
+                
+                // Contexto reciente
                 const context=chatHistory.slice(-6).map(m=>({role:m.sender==="jarvis"?"model":"user",parts:[{text:m.text}]}));
                 const body={contents:[...context,{role:"user",parts}],systemInstruction:{parts:[{text:SYSTEM_PROMPT}]}};
                 const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -291,7 +308,8 @@
                 loadingIndicator.classList.add('hidden');
                 chatHistory.push({sender:"user",text:prompt},{sender:"jarvis",text:reply});
                 appendMessage("jarvis",reply);
-                parseFiles(reply);
+                parseAndGenerateFiles(reply, imageBase64);
+                if(imageBase64 && !reply.includes('[START-WORD]')){ /* No se usó la imagen en Word, pero mantenemos por si acaso */ }
                 if(imageBase64){selectedBase64Image=null;previewContainer.classList.add('hidden');dropZoneContent.classList.remove('hidden');}
             }catch(err){
                 clearInterval(timer);
@@ -306,10 +324,14 @@
             }
         }
 
-        function parseFiles(text){
-            // Word usando html-docx-js
+        function parseAndGenerateFiles(text, userImageBase64=null){
+            // Word con formato enriquecido
             const wordMatch=text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
-            if(wordMatch) try{ generateWord(JSON.parse(wordMatch[1].trim())); }catch(e){ logEvent(`Error Word JSON: ${e.message}`,"red"); }
+            if(wordMatch){
+                let htmlContent = wordMatch[1].trim();
+                // Si el usuario ha proporcionado una imagen y JARVIS no la incluyó, podemos forzar inyección? Mejor confiar en JARVIS.
+                generateRichWordDocument(htmlContent);
+            }
             // Excel
             const excelMatch=text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
             if(excelMatch) try{ generateExcel(JSON.parse(excelMatch[1].trim())); }catch(e){ logEvent(`Error Excel: ${e.message}`,"red"); }
@@ -324,36 +346,24 @@
             let m; while((m=txtRegex.exec(text))!==null) generateTXT(m[1],m[2]);
         }
 
-        function addToVault(filename,type,downloadFn){
-            statistics.filesGenerated++; statFiles.innerText=statistics.filesGenerated;
-            vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
-            const row=document.createElement('div');
-            row.className="flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950";
-            let icon="fa-file-lines"; if(type==='docx') icon="fa-file-word text-cyan-400"; if(type==='xlsx') icon="fa-file-excel text-emerald-400"; if(type==='pptx') icon="fa-file-powerpoint text-orange-400"; if(type==='cxl') icon="fa-diagram-project text-cyan-300";
-            row.innerHTML=`<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div><button class="bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>`;
-            row.querySelector('button').addEventListener('click',downloadFn);
-            vaultList.prepend(row);
-            vaultCount.innerText=`${statistics.filesGenerated} ARCHIVOS`;
-            logEvent(`Archivo ${filename} guardado en bóveda`,"emerald");
-        }
-
-        // NUEVA GENERACIÓN DE WORD CON html-docx-js
-        function generateWord(data){
-            const title=data.title||"Documento J.A.R.V.I.S.";
-            const subtitle=data.subtitle||"Generado automáticamente";
-            const sections=data.sections||[];
-            let htmlContent=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>body{font-family: Calibri, Arial, sans-serif; margin: 2cm;} h1{color:#005a70;} h2{color:#007a90;} p{line-height:1.4;}</style></head><body><h1>${escapeHtml(title)}</h1><h3>${escapeHtml(subtitle)}</h3><p><em>Generado por J.A.R.V.I.S. el ${new Date().toLocaleString()}</em></p>`;
-            sections.forEach(sec=>{
-                htmlContent+=`<h2>${escapeHtml(sec.heading)}</h2>`;
-                sec.paragraphs.forEach(p=>htmlContent+=`<p>${escapeHtml(p)}</p>`);
+        // Función mejorada para Word usando html-docx-js respetando @page y estilos
+        function generateRichWordDocument(htmlString){
+            // Asegurar que el HTML tenga las declaraciones básicas
+            let fullHtml = htmlString;
+            if(!fullHtml.includes('<!DOCTYPE html>')){
+                fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento JARVIS</title><style>body { font-family: 'Calibri', 'Arial', sans-serif; margin: 0; padding: 0; }</style></head><body>${fullHtml}</body></html>`;
+            }
+            // Si no hay @page en style, agregar defaults A4 vertical márgenes 2.54cm
+            if(!fullHtml.includes('@page')){
+                fullHtml = fullHtml.replace('</style>', '@page { size: A4 portrait; margin: 2.54cm; }\n</style>');
+            }
+            const fileName = `documento_jarvis_${Date.now()}.docx`;
+            const blob = window.htmlDocx.asBlob(fullHtml);
+            addToVault(fileName, "docx", () => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); URL.revokeObjectURL(url);
             });
-            htmlContent+=`</body></html>`;
-            const fileName=`${title.toLowerCase().replace(/\s+/g,'_')}_report.docx`;
-            const converted = window.htmlDocx.asBlob(htmlContent);
-            addToVault(fileName,"docx",()=>{
-                const url=URL.createObjectURL(converted);
-                const a=document.createElement('a');a.href=url;a.download=fileName;a.click();URL.revokeObjectURL(url);
-            });
+            logEvent(`Documento Word enriquecido generado: ${fileName}`, "emerald");
         }
 
         function generateExcel(data){
@@ -385,9 +395,20 @@
             addToVault(filename,"txt",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
         }
 
-        function escapeHtml(str){ return str.replace(/[&<>]/g,function(m){if(m==='&')return '&amp;';if(m==='<')return '&lt;';if(m==='>')return '&gt;';return m;});}
+        function addToVault(filename,type,downloadFn){
+            statistics.filesGenerated++; statFiles.innerText=statistics.filesGenerated;
+            vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
+            const row=document.createElement('div');
+            row.className="flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950";
+            let icon="fa-file-lines"; if(type==='docx') icon="fa-file-word text-cyan-400"; if(type==='xlsx') icon="fa-file-excel text-emerald-400"; if(type==='pptx') icon="fa-file-powerpoint text-orange-400"; if(type==='cxl') icon="fa-diagram-project text-cyan-300";
+            row.innerHTML=`<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div><button class="bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>`;
+            row.querySelector('button').addEventListener('click',downloadFn);
+            vaultList.prepend(row);
+            vaultCount.innerText=`${statistics.filesGenerated} ARCHIVOS`;
+            logEvent(`Archivo ${filename} guardado en bóveda`,"emerald");
+        }
 
-        window.addEventListener('DOMContentLoaded',()=>{updateApiKeyIndicator();updateModelIndicator();logEvent("Sistema J.A.R.V.I.S. operativo con html-docx-js","emerald");userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});});
+        window.addEventListener('DOMContentLoaded',()=>{updateApiKeyIndicator();updateModelIndicator();logEvent("Sistema J.A.R.V.I.S. operativo con generación de Word enriquecido (negritas, viñetas, imágenes, @page)","emerald");userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});});
     </script>
 </body>
 </html>
