@@ -54,6 +54,8 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(4,15,30,0.5); }
         ::-webkit-scrollbar-thumb { background: var(--jarvis-blue-dark); border-radius: 4px; }
+        .api-config { transition: all 0.2s; }
+        .api-config input { background: #0a1a2a; border: 1px solid #0f3b4a; color: #00f0ff; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-3 md:p-6">
@@ -70,15 +72,15 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v4.3</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v4.5</span>
                 </h1>
-                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Generador con HTML puro, negritas reales y UTF-8</p>
+                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Generador HTML puro | Negritas reales | UTF-8</p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
             <div class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span><span>REACTOR: EN LÍNEA</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
-            <div><i class="fa-solid fa-key"></i> API: <span id="active-key-label" class="text-amber-400">KEY_01</span></div>
+            <div><i class="fa-solid fa-key"></i> API: <span id="active-key-label" class="text-amber-400">No configurada</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
             <div><i class="fa-solid fa-microchip"></i> MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH</span></div>
         </div>
@@ -95,6 +97,17 @@
                     <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Fallos API</span><span id="stat-failures" class="text-base text-rose-400 font-bold">0</span></div>
                 </div>
                 <div class="mt-2"><span class="text-[10px] text-cyan-500">Registro de Eventos:</span><div id="terminal-log" class="cli-output h-24 p-2 rounded text-[10px] tech-font overflow-y-auto mt-1"></div></div>
+            </div>
+
+            <!-- PANEL DE CONFIGURACIÓN DE API KEY (ahora con input personal) -->
+            <div class="hud-panel p-4 rounded api-config">
+                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-solid fa-key mr-2"></i>Clave API Personal</h3>
+                <p class="text-xs text-cyan-500 mt-1">Obtén tu clave gratis en <a href="https://aistudio.google.com/" target="_blank" class="text-cyan-300 underline">Google AI Studio</a></p>
+                <div class="mt-3 flex gap-2">
+                    <input type="password" id="custom-api-key" class="flex-1 bg-slate-900 border border-cyan-800 rounded px-3 py-2 text-xs text-cyan-100 placeholder-cyan-700 focus:outline-none focus:border-cyan-400" placeholder="Ingresa tu API Key" autocomplete="off">
+                    <button id="save-api-key" class="bg-cyan-950 border border-cyan-700 px-3 py-1 rounded text-cyan-400 hover:bg-cyan-900 text-xs"><i class="fa-regular fa-floppy-disk"></i> Guardar</button>
+                </div>
+                <div id="api-status" class="text-[10px] mt-2 text-amber-400"></div>
             </div>
 
             <div class="hud-panel p-4 rounded">
@@ -128,7 +141,7 @@
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
                     <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3">
                         <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>
-                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, he perfeccionado el motor de documentos. Ahora genero <strong>HTML puro</strong> sin fragmentos CSS sueltos, con <strong>negritas reales</strong>, viñetas, tablas y respeto total por la codificación UTF-8 (tildes, ñ). ¿En qué puedo asistirle?</p></div>
+                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, para comenzar necesita configurar una <strong>API Key válida de Gemini</strong>. Obtenga una gratis en <a href="https://aistudio.google.com/" target="_blank" class="text-cyan-300 underline">Google AI Studio</a> e ingrésela en el panel izquierdo. Una vez guardada, podré generar documentos con negritas reales, tablas, imágenes y formato profesional.</p></div>
                     </div>
                 </div>
                 <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
@@ -140,28 +153,52 @@
         </section>
     </main>
 
-    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — HTML puro, negritas reales, UTF-8 sin errores</footer>
+    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — Clave API personal | Sin hardcode | Almacenamiento local seguro</footer>
 
     <script>
-        // ---------- API KEYS OFUSCADAS ----------
-        // Las claves se ensamblan en tiempo de ejecución para evitar extracción directa
-        const _key1_part1 = "AIzaSyD1L_cg8wRXNXcn4tP-DJGh4jcIsjbbB_E";
-        const _key2_part1 = "AIzaSyA2PjKnTuh4j7ySpH_XlxHv0pmJuBx7rVg";
-        // No se parte la clave, pero podemos ofuscar ligeramente invirtiendo o codificando
-        // Para mayor seguridad, se aplica una simple rotación de caracteres (ROT1) que se decodifica al usarlas
-        function _reveal(key) { return key; } // Sin modificación en este ejemplo, pero se podría aplicar un atob si se codificara en base64
-        
-        const API_KEYS_POOL = [_key1_part1, _key2_part1];
-        
-        // Resto de variables globales
-        let activeKeyIndex = 0;
+        // ---------- GESTIÓN DE API KEY (sin hardcode, desde localStorage/sessionStorage) ----------
+        let activeApiKey = null;
+        let activeKeyIndex = 0; // solo una clave personal
         let selectedBase64Image = null;
         let chatHistory = [];
         let statistics = { requests: 0, failures: 0, filesGenerated: 0 };
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
         let activeModelIndex = 0;
 
-        // SYSTEM PROMPT MEJORADO (sin cambios, idéntico al funcional anterior)
+        // Cargar clave guardada al inicio
+        function loadApiKey() {
+            const saved = sessionStorage.getItem('jarvis_api_key');
+            if (saved) {
+                activeApiKey = saved;
+                document.getElementById('active-key-label').innerText = 'PERSONAL ✓';
+                document.getElementById('api-status').innerHTML = '<span class="text-emerald-400"><i class="fa-solid fa-check-circle"></i> Clave activa</span>';
+                document.getElementById('custom-api-key').value = '••••••••••••••••';
+                logEvent("Clave API personal cargada desde almacenamiento seguro", "emerald");
+            } else {
+                activeApiKey = null;
+                document.getElementById('active-key-label').innerText = 'No configurada';
+                document.getElementById('api-status').innerHTML = '<span class="text-rose-400"><i class="fa-solid fa-exclamation-triangle"></i> Necesitas una API Key</span>';
+            }
+        }
+
+        // Guardar nueva clave
+        document.getElementById('save-api-key').addEventListener('click', () => {
+            const newKey = document.getElementById('custom-api-key').value.trim();
+            if (!newKey) {
+                logEvent("Por favor ingresa una API Key válida", "red");
+                return;
+            }
+            activeApiKey = newKey;
+            sessionStorage.setItem('jarvis_api_key', newKey);
+            document.getElementById('active-key-label').innerText = 'PERSONAL ✓';
+            document.getElementById('api-status').innerHTML = '<span class="text-emerald-400"><i class="fa-solid fa-check-circle"></i> Clave almacenada (válida hasta que caduque)</span>';
+            logEvent("API Key guardada. Ahora puedes usar J.A.R.V.I.S.", "emerald");
+            // Limpiar campo visual
+            document.getElementById('custom-api-key').value = '••••••••••••••••';
+            // Opcional: validar rápidamente
+        });
+
+        // SYSTEM PROMPT (idéntico al anterior, pero mejorado)
         const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., un asistente de IA que genera documentos profesionales. Para documentos Word, debes producir exclusivamente código HTML completo dentro de las etiquetas [START-WORD] y [END-WORD].
 
 REGLAS ESTRICTAS:
@@ -182,7 +219,7 @@ Ejemplo de respuesta correcta:
 <h1>Informe de Ventas</h1>
 <p>Estimado <strong>Señor</strong>, los resultados son <strong>positivos</strong>.</p>
 <ul><li>Crecimiento del <strong>12%</strong> en ventas.</li></ul>
-<table border="1"><tr><th>Producto</th><th>Ingresos</th></tr><tr><td>Electrónica</td><td>250.000 €</td></tr></tr>
+<table border="1"><tr><th>Producto</th><th>Ingresos</th></tr><tr><td>Electrónica</td><td>250.000 €</td></tr></table>
 </body></html>
 [END-WORD]
 
@@ -222,9 +259,16 @@ Ahora genera el documento solicitado por el usuario.`;
             terminalLog.scrollTop = terminalLog.scrollHeight;
         }
 
-        function updateApiKeyIndicator() { activeKeyLabel.innerText = `KEY_0${activeKeyIndex+1}`; }
         function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' '); }
-        function rotateApiKey() { statistics.failures++; statFailures.innerText = statistics.failures; activeKeyIndex = (activeKeyIndex+1)%API_KEYS_POOL.length; updateApiKeyIndicator(); logEvent(`Fallback a ${activeKeyLabel.innerText}`, "amber"); }
+        function rotateApiKey() { 
+            statistics.failures++; 
+            statFailures.innerText = statistics.failures;
+            logEvent("La API Key actual es inválida o expiró. Por favor ingresa una nueva en el panel izquierdo.", "red");
+            activeApiKey = null;
+            sessionStorage.removeItem('jarvis_api_key');
+            document.getElementById('active-key-label').innerText = 'No configurada';
+            document.getElementById('api-status').innerHTML = '<span class="text-rose-400"><i class="fa-solid fa-exclamation-triangle"></i> Clave expirada, ingresa una nueva</span>';
+        }
 
         // Imagen
         dropZone.addEventListener('click',()=>imageInput.click());
@@ -272,7 +316,7 @@ Ahora genera el documento solicitado por el usuario.`;
         }
 
         function formatResponse(t){
-            let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado (HTML puro)</div>')
+            let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
                       .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel compilada</div>')
                       .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PowerPoint</div>')
                       .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa conceptual CXL</div>')
@@ -282,8 +326,12 @@ Ahora genera el documento solicitado por el usuario.`;
         }
 
         async function queryAI(prompt, imageBase64, retry=0){
-            if(activeKeyIndex>=API_KEYS_POOL.length){appendMessage("jarvis","Señor, todas las claves API fallaron.");return;}
-            const key = API_KEYS_POOL[activeKeyIndex];
+            if (!activeApiKey) {
+                appendMessage("jarvis","Señor, no hay una API Key configurada. Por favor ingrese su clave personal en el panel izquierdo (obténgala gratis en Google AI Studio).");
+                loadingIndicator.classList.add('hidden');
+                return;
+            }
+            const key = activeApiKey;
             const model = MODELS_POOL[activeModelIndex];
             statistics.requests++; statRequests.innerText=statistics.requests;
             loadingIndicator.classList.remove('hidden');
@@ -304,6 +352,19 @@ Ahora genera el documento solicitado por el usuario.`;
                 const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
                 clearInterval(timer);
                 statLatency.innerText=`${Math.round(performance.now()-start)}ms`;
+                
+                if(res.status === 400 || res.status === 403 || res.status === 401){
+                    const errData = await res.json();
+                    if(errData.error && (errData.error.message.includes("API key") || errData.error.message.includes("expired"))){
+                        logEvent("API Key expirada o inválida. Por favor renueva tu clave.", "red");
+                        rotateApiKey();
+                        loadingIndicator.classList.add('hidden');
+                        appendMessage("jarvis","Señor, la API Key que proporcionó ha expirado o es inválida. Por favor, ingrese una nueva clave válida desde el panel izquierdo.");
+                        return;
+                    }
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                
                 if(res.status===404 && activeModelIndex<MODELS_POOL.length-1){activeModelIndex++;updateModelIndicator();logEvent(`Cambio a modelo ${MODELS_POOL[activeModelIndex]}`, "amber");return queryAI(prompt,imageBase64,retry);}
                 if(!res.ok)throw new Error(`HTTP ${res.status}`);
                 const data=await res.json();
@@ -317,12 +378,12 @@ Ahora genera el documento solicitado por el usuario.`;
                 if(imageBase64){selectedBase64Image=null;previewContainer.classList.add('hidden');dropZoneContent.classList.remove('hidden');}
             }catch(err){
                 clearInterval(timer);
-                if(err.message.includes("429")||err.message.includes("403")||err.message==="TypeError: Failed to fetch"){
-                    rotateApiKey();
-                    setTimeout(()=>queryAI(prompt,imageBase64,retry+1),Math.pow(2,retry)*1000);
-                }else{
+                if(err.message.includes("429")){
+                    logEvent("Límite de cuota alcanzado. Espera unos segundos.", "amber");
+                    setTimeout(()=>queryAI(prompt,imageBase64,retry+1),5000);
+                } else {
                     loadingIndicator.classList.add('hidden');
-                    appendMessage("jarvis","Señor, error en la comunicación. Intente de nuevo.");
+                    appendMessage("jarvis","Señor, error en la comunicación con Gemini. Verifique su clave o intente más tarde.");
                     logEvent(`Error: ${err.message}`,"red");
                 }
             }
@@ -401,7 +462,12 @@ Ahora genera el documento solicitado por el usuario.`;
             logEvent(`Archivo ${filename} guardado`,"emerald");
         }
 
-        window.addEventListener('DOMContentLoaded',()=>{updateApiKeyIndicator();updateModelIndicator();logEvent("J.A.R.V.I.S. listo: HTML puro, negritas reales, UTF-8","emerald");userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});});
+        window.addEventListener('DOMContentLoaded',()=>{
+            loadApiKey();
+            updateModelIndicator();
+            userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+            logEvent("J.A.R.V.I.S. listo. Configure su API Key para empezar.","cyan");
+        });
     </script>
 </body>
 </html>
