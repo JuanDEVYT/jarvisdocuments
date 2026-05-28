@@ -73,7 +73,7 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v5.0</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v5.2</span>
                 </h1>
                 <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
             </div>
@@ -168,7 +168,6 @@
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
         let activeModelIndex = 0;
 
-        // Cargar claves guardadas desde localStorage
         function loadKeysFromStorage() {
             const stored = localStorage.getItem('jarvis_multi_keys');
             if (stored) {
@@ -239,7 +238,6 @@
             label.innerText = `CLAVE_${idx+1}`;
         }
 
-        // Guardar nuevas claves desde el textarea
         document.getElementById('save-keys-btn').addEventListener('click', () => {
             const raw = document.getElementById('multi-keys-input').value;
             const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
@@ -275,19 +273,27 @@
             return true;
         }
 
-        // SYSTEM PROMPT reforzado con ejemplos claros para Excel y PPT
+        // SYSTEM PROMPT MEJORADO: ahora J.A.R.V.I.S. genera las coordenadas para CXL
         const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de IA. Debes generar documentos usando etiquetas específicas. Para cada tipo, usa estas marcas:
 
 - WORD (documento .docx): [START-WORD] ... contenido HTML completo ... [END-WORD]
 - EXCEL (.xlsx): [START-EXCEL] ... JSON con estructura {"sheetName":"...","headers":["A","B"],"rows":[["v1","v2"]]} ... [END-EXCEL]
 - POWERPOINT (.pptx): [START-PPT] ... JSON con estructura {"presentationTitle":"...","slides":[{"title":"...","bullets":["..."]}]} ... [END-PPT]
-- MAPA CXL: [START-CXL] ... JSON con conceptos y conexiones ... [END-CXL]
+- MAPA CXL (CmapTools): [START-CXL] ... JSON con estructura:
+  {
+    "title": "Título del mapa",
+    "concepts": [{"id": "c1", "label": "Concepto raíz", "x": 400, "y": 200}, {"id": "c2", "label": "Otro concepto", "x": 600, "y": 300}],
+    "linkingPhrases": [{"id": "lp1", "label": "conecta con", "x": 500, "y": 250}],
+    "connections": [{"from": "c1", "to": "lp1"}, {"from": "lp1", "to": "c2"}]
+  }
+  IMPORTANTE: TÚ como J.A.R.V.I.S. debes decidir las coordenadas (x, y) para cada concepto y frase de enlace. Usa un rango de 100 a 800 para x y de 100 a 600 para y. Distribuye los elementos de manera lógica y legible (por ejemplo, jerarquía descendente, flujo horizontal, o en forma de árbol). No dejes que el sistema las genere automáticamente. Asegúrate de que no haya superposiciones.
 - TXT: [START-TXT filename="nombre.txt"] ... texto ... [END-TXT]
 
 REGLAS IMPORTANTES:
-- Para EXCEL: el JSON debe ser válido. Usa sheetName, headers (array), rows (array de arrays).
-- Para POWERPOINT: el JSON debe tener presentationTitle y un array de slides, cada uno con title y bullets (array de strings).
-- Para WORD: genera HTML completo con <strong> para negritas, <ul>/<li> para viñetas, y <table> para tablas. Incluye <meta charset="UTF-8"> y @page para márgenes.
+- Para EXCEL: JSON válido. Usa sheetName, headers (array), rows (array de arrays).
+- Para POWERPOINT: presentationTitle y slides (cada uno con title y bullets).
+- Para WORD: HTML completo con <strong> para negritas, <ul>/<li> para viñetas, y <tr> para tablas. Incluye <meta charset="UTF-8"> y @page.
+- Para CXL: proporciona conceptos con coordenadas (x,y) y frases de enlace también con coordenadas. El sistema usará exactamente esas posiciones.
 - No agregues texto fuera de las etiquetas. Sé conciso pero completo.
 
 Ejemplo EXCEL:
@@ -299,6 +305,11 @@ Ejemplo PPT:
 [START-PPT]
 {"presentationTitle":"Estrategia 2026","slides":[{"title":"Visión","bullets":["Crecimiento 20%","Nuevos mercados"]},{"title":"Metas","bullets":["Innovación","Sostenibilidad"]}]}
 [END-PPT]
+
+Ejemplo CXL (con coordenadas definidas por J.A.R.V.I.S.):
+[START-CXL]
+{"title":"Mapa de Inteligencia Artificial","concepts":[{"id":"c1","label":"Inteligencia Artificial","x":400,"y":150},{"id":"c2","label":"Machine Learning","x":250,"y":300},{"id":"c3","label":"Deep Learning","x":550,"y":300}],"linkingPhrases":[{"id":"lp1","label":"incluye","x":320,"y":225},{"id":"lp2","label":"subcampo","x":480,"y":225}],"connections":[{"from":"c1","to":"lp1"},{"from":"lp1","to":"c2"},{"from":"c1","to":"lp2"},{"from":"lp2","to":"c3"}]}
+[END-CXL]
 
 Ahora genera el documento solicitado por el usuario.`;
 
@@ -385,7 +396,7 @@ Ahora genera el documento solicitado por el usuario.`;
             let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
                       .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel generada</div>')
                       .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PPT generada</div>')
-                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa CXL generado</div>')
+                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa CXL generado (con diseño definido por J.A.R.V.I.S.)</div>')
                       .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo TXT generado</div>');
             r = r.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
             return r.replace(/\n/g,'<br>');
@@ -458,7 +469,7 @@ Ahora genera el documento solicitado por el usuario.`;
         }
 
         function parseAndGenerateFiles(text){
-            // Extraer WORD
+            // WORD
             const wordMatch = text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
             if(wordMatch) generateWord(wordMatch[1].trim());
             // EXCEL
@@ -477,13 +488,13 @@ Ahora genera el documento solicitado por el usuario.`;
                     generatePPT(data);
                 } catch(e) { logEvent(`Error parseando PPT: ${e.message}`, "red"); }
             }
-            // CXL
+            // CXL - ahora J.A.R.V.I.S. proporciona coordenadas
             const cxlMatch = text.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/);
             if(cxlMatch) {
                 try {
                     const data = JSON.parse(cxlMatch[1].trim());
                     generateCXL(data);
-                } catch(e) { logEvent(`Error parseando CXL: ${e.message}`, "red"); }
+                } catch(e) { logEvent(`Error parseando CXL: ${e.message} - Asegúrate de que J.A.R.V.I.S. haya incluido coordenadas x,y`, "red"); }
             }
             // TXT
             const txtRegex = /\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g;
@@ -523,13 +534,100 @@ Ahora genera el documento solicitado por el usuario.`;
             logEvent(`PPT generado: ${filename}`, "emerald");
         }
 
-        function generateCXL(data){
-            const title=data.title||"Mapa"; const concepts=data.concepts||[]; const phrases=data.linkingPhrases||[]; const conns=data.connections||[];
-            let xml=`<?xml version="1.0" encoding="UTF-8"?><cmap><res-meta><dc:title>${title}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${c.id}" label="${c.label}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${p.id}" label="${p.label}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${c.from}" to-id="${c.to}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${c.id}" x="${100+ i*120}" y="100" width="145" height="45"/>`).join('')}</concept-appearance-list></map></cmap>`;
-            const filename=`${title.toLowerCase().replace(/\s/g,'_')}_${Date.now()}.cxl`;
-            const blob=new Blob([xml],{type:"text/xml;charset=utf-8"});
-            addToVault(filename,"cxl",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
-            logEvent(`CXL generado: ${filename}`, "emerald");
+        // Función que respeta las coordenadas provistas por J.A.R.V.I.S.
+        function escapeXml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function generateCXL(data) {
+            const title = escapeXml(data.title || "Mapa Conceptual");
+            const concepts = data.concepts || [];
+            const linkingPhrases = data.linkingPhrases || [];
+            const connections = data.connections || [];
+
+            // Validar que cada concepto tenga coordenadas, si no, asignar una posición por defecto (pero idealmente JARVIS las da)
+            concepts.forEach((c, idx) => {
+                if (c.x === undefined || c.y === undefined) {
+                    const angle = (idx / Math.max(1, concepts.length)) * 2 * Math.PI;
+                    const radius = 200 + (idx % 3) * 60;
+                    c.x = Math.round(400 + Math.cos(angle) * radius);
+                    c.y = Math.round(250 + Math.sin(angle) * radius);
+                    logEvent(`Advertencia: El concepto "${c.label}" no tenía coordenadas. Se asignaron automáticas.`, "amber");
+                }
+            });
+            linkingPhrases.forEach((lp, idx) => {
+                if (lp.x === undefined || lp.y === undefined) {
+                    lp.x = 300 + (idx % 5) * 90;
+                    lp.y = 400 + Math.floor(idx / 5) * 70;
+                    logEvent(`Advertencia: La frase "${lp.label}" no tenía coordenadas. Se asignaron automáticas.`, "amber");
+                }
+            });
+
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+            xml += `<cmap xmlns="http://cmap.ihmc.us/xml/cmap/" xmlns:dc="http://purl.org/dc/elements/1.1/">\n`;
+            xml += `  <res-meta>\n`;
+            xml += `    <dc:title>${title}</dc:title>\n`;
+            xml += `    <dc:creator>J.A.R.V.I.S.</dc:creator>\n`;
+            xml += `    <dc:format>application/x-cmap</dc:format>\n`;
+            xml += `  </res-meta>\n`;
+            xml += `  <map>\n`;
+            
+            xml += `    <concept-list>\n`;
+            concepts.forEach(c => {
+                xml += `      <concept id="${escapeXml(c.id)}" label="${escapeXml(c.label)}" />\n`;
+            });
+            xml += `    </concept-list>\n`;
+            
+            xml += `    <linking-phrase-list>\n`;
+            linkingPhrases.forEach(lp => {
+                xml += `      <linking-phrase id="${escapeXml(lp.id)}" label="${escapeXml(lp.label)}" />\n`;
+            });
+            xml += `    </linking-phrase-list>\n`;
+            
+            xml += `    <connection-list>\n`;
+            connections.forEach((conn, idx) => {
+                xml += `      <connection id="conn_${idx}" from-id="${escapeXml(conn.from)}" to-id="${escapeXml(conn.to)}" />\n`;
+            });
+            xml += `    </connection-list>\n`;
+            
+            xml += `    <concept-appearance-list>\n`;
+            concepts.forEach(c => {
+                xml += `      <concept-appearance id="${escapeXml(c.id)}" x="${c.x}" y="${c.y}" width="130" height="40" background-color="230,240,255,255" border-color="0,90,112,255" border-thickness="2" border-shape="rounded-rectangle" font-color="0,30,50,255" font-size="12" font-style="bold" />\n`;
+            });
+            xml += `    </concept-appearance-list>\n`;
+            
+            xml += `    <linking-phrase-appearance-list>\n`;
+            linkingPhrases.forEach(lp => {
+                xml += `      <linking-phrase-appearance id="${escapeXml(lp.id)}" x="${lp.x}" y="${lp.y}" width="90" height="30" font-color="0,90,112,255" font-size="10" font-style="plain" background-color="255,255,255,255" />\n`;
+            });
+            xml += `    </linking-phrase-appearance-list>\n`;
+            
+            xml += `    <connection-appearance-list>\n`;
+            connections.forEach((_, idx) => {
+                xml += `      <connection-appearance id="conn_${idx}" arrowhead="if-to-concept" line-style="straight" line-color="0,90,112,255" line-thickness="2" />\n`;
+            });
+            xml += `    </connection-appearance-list>\n`;
+            
+            xml += `  </map>\n`;
+            xml += `</cmap>`;
+            
+            const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}.cxl`;
+            const blob = new Blob([xml], { type: "application/xml;charset=utf-8" });
+            addToVault(filename, "cxl", () => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+            logEvent(`CXL generado con diseño de J.A.R.V.I.S.: ${filename}`, "emerald");
         }
 
         function generateTXT(filename,content){
@@ -554,7 +652,7 @@ Ahora genera el documento solicitado por el usuario.`;
             loadKeysFromStorage();
             updateModelIndicator();
             userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
-            logEvent("J.A.R.V.I.S. listo. Configure sus claves API en el panel izquierdo.","cyan");
+            logEvent("J.A.R.V.I.S. listo. Configure sus claves API.","cyan");
         });
     </script>
 </body>
