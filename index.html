@@ -54,8 +54,9 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(4,15,30,0.5); }
         ::-webkit-scrollbar-thumb { background: var(--jarvis-blue-dark); border-radius: 4px; }
-        .api-config { transition: all 0.2s; }
-        .api-config input { background: #0a1a2a; border: 1px solid #0f3b4a; color: #00f0ff; }
+        .api-keys-container input, .api-keys-container textarea { background: #0a1a2a; border: 1px solid #0f3b4a; color: #00f0ff; }
+        .key-badge { background: #0a1a2a; border: 1px solid #0f3b4a; border-radius: 4px; padding: 2px 6px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; }
+        .key-badge button { background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 10px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-3 md:p-6">
@@ -72,15 +73,15 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v4.5</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v5.0</span>
                 </h1>
-                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Generador HTML puro | Negritas reales | UTF-8</p>
+                <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
             <div class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span><span>REACTOR: EN LÍNEA</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
-            <div><i class="fa-solid fa-key"></i> API: <span id="active-key-label" class="text-amber-400">No configurada</span></div>
+            <div><i class="fa-solid fa-key"></i> API: <span id="active-key-label" class="text-amber-400">Sin claves</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
             <div><i class="fa-solid fa-microchip"></i> MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH</span></div>
         </div>
@@ -96,18 +97,20 @@
                     <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Archivos</span><span id="stat-files" class="text-base text-cyan-300 font-bold">0</span></div>
                     <div class="bg-slate-950/40 p-2 rounded"><span class="text-cyan-600 block text-[9px]">Fallos API</span><span id="stat-failures" class="text-base text-rose-400 font-bold">0</span></div>
                 </div>
-                <div class="mt-2"><span class="text-[10px] text-cyan-500">Registro de Eventos:</span><div id="terminal-log" class="cli-output h-24 p-2 rounded text-[10px] tech-font overflow-y-auto mt-1"></div></div>
+                <div class="mt-2"><span class="text-[10px] text-cyan-500">Registro de Eventos:</span><div id="terminal-log" class="cli-output h-28 p-2 rounded text-[10px] tech-font overflow-y-auto mt-1"></div></div>
             </div>
 
-            <!-- PANEL DE CONFIGURACIÓN DE API KEY (ahora con input personal) -->
-            <div class="hud-panel p-4 rounded api-config">
-                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-solid fa-key mr-2"></i>Clave API Personal</h3>
-                <p class="text-xs text-cyan-500 mt-1">Obtén tu clave gratis en <a href="https://aistudio.google.com/" target="_blank" class="text-cyan-300 underline">Google AI Studio</a></p>
-                <div class="mt-3 flex gap-2">
-                    <input type="password" id="custom-api-key" class="flex-1 bg-slate-900 border border-cyan-800 rounded px-3 py-2 text-xs text-cyan-100 placeholder-cyan-700 focus:outline-none focus:border-cyan-400" placeholder="Ingresa tu API Key" autocomplete="off">
-                    <button id="save-api-key" class="bg-cyan-950 border border-cyan-700 px-3 py-1 rounded text-cyan-400 hover:bg-cyan-900 text-xs"><i class="fa-regular fa-floppy-disk"></i> Guardar</button>
+            <!-- PANEL DE MÚLTIPLES API KEYS -->
+            <div class="hud-panel p-4 rounded api-keys-container">
+                <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-solid fa-key mr-2"></i>Claves API (Respaldo múltiple)</h3>
+                <p class="text-[10px] text-cyan-500 mt-1">Una por línea. El sistema alternará automáticamente si falla una.</p>
+                <textarea id="multi-keys-input" rows="3" class="w-full mt-2 rounded px-2 py-1 text-xs font-mono" placeholder="AIzaSy...&#10;AIzaSy..."></textarea>
+                <div class="flex gap-2 mt-2">
+                    <button id="save-keys-btn" class="bg-cyan-950 border border-cyan-700 px-3 py-1 rounded text-cyan-400 hover:bg-cyan-900 text-xs"><i class="fa-regular fa-floppy-disk"></i> Guardar claves</button>
+                    <button id="clear-keys-btn" class="bg-red-950/60 border border-red-800 px-3 py-1 rounded text-red-400 hover:bg-red-900/40 text-xs"><i class="fa-solid fa-trash"></i> Limpiar</button>
                 </div>
-                <div id="api-status" class="text-[10px] mt-2 text-amber-400"></div>
+                <div id="keys-status" class="text-[10px] mt-2 text-amber-400"></div>
+                <div id="keys-list" class="flex flex-wrap gap-1 mt-2"></div>
             </div>
 
             <div class="hud-panel p-4 rounded">
@@ -134,104 +137,175 @@
                         <option value="">-- Acción rápida --</option>
                         <option value="Genera un informe de ventas ejecutivo en Word. El documento debe contener: título, saludo formal, sección de desempeño general (con negritas reales en las cifras), lista de puntos clave con viñetas (usando ul/li), tabla de ventas por categoría (con bordes y alineación), conclusiones y firma. Usa orientación vertical, márgenes normales, y asegúrate de que todo el texto esté dentro del cuerpo HTML, sin fragmentos CSS sueltos. Usa <strong> para negritas, <em> para énfasis, y respeta las tildes y la ñ.">Generar Informe de Ventas (Word)</option>
                         <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Mapa SDLC (CXL)</option>
-                        <option value="Genera un presupuesto financiero en Excel con 3 columnas de ejemplo.">Presupuesto (Excel)</option>
-                        <option value="Prepara una presentación de 4 diapositivas sobre IA en 2026.">Diapositivas IA (PPT)</option>
+                        <option value="Genera un presupuesto financiero en Excel con 3 columnas: 'Categoría', 'Presupuesto', 'Real'. Incluye 5 filas de ejemplo.">Presupuesto (Excel)</option>
+                        <option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en 2026, con títulos y viñetas.">Diapositivas IA (PPT)</option>
                     </select>
                 </div>
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
                     <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3">
                         <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>
-                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Señor, para comenzar necesita configurar una <strong>API Key válida de Gemini</strong>. Obtenga una gratis en <a href="https://aistudio.google.com/" target="_blank" class="text-cyan-300 underline">Google AI Studio</a> e ingrésela en el panel izquierdo. Una vez guardada, podré generar documentos con negritas reales, tablas, imágenes y formato profesional.</p></div>
+                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Sistema operativo. Configure al menos una clave API en el panel izquierdo para comenzar.</p></div>
                     </div>
                 </div>
                 <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
                 <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2">
-                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ej: 'Genera un informe de ventas con tabla y negritas'"></textarea>
+                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ej: 'Genera un presupuesto en Excel' o 'Crea diapositivas sobre IA'"></textarea>
                     <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
     </main>
 
-    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — Clave API personal | Sin hardcode | Almacenamiento local seguro</footer>
+    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — Sistema de automatización</footer>
 
     <script>
-        // ---------- GESTIÓN DE API KEY (sin hardcode, desde localStorage/sessionStorage) ----------
-        let activeApiKey = null;
-        let activeKeyIndex = 0; // solo una clave personal
+        // ---------- GESTIÓN DE MÚLTIPLES API KEYS (personal storage) ----------
+        let apiKeysPool = [];      // array de claves activas
+        let activeKeyIndex = 0;
         let selectedBase64Image = null;
         let chatHistory = [];
         let statistics = { requests: 0, failures: 0, filesGenerated: 0 };
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
         let activeModelIndex = 0;
 
-        // Cargar clave guardada al inicio
-        function loadApiKey() {
-            const saved = sessionStorage.getItem('jarvis_api_key');
-            if (saved) {
-                activeApiKey = saved;
-                document.getElementById('active-key-label').innerText = 'PERSONAL ✓';
-                document.getElementById('api-status').innerHTML = '<span class="text-emerald-400"><i class="fa-solid fa-check-circle"></i> Clave activa</span>';
-                document.getElementById('custom-api-key').value = '••••••••••••••••';
-                logEvent("Clave API personal cargada desde almacenamiento seguro", "emerald");
-            } else {
-                activeApiKey = null;
-                document.getElementById('active-key-label').innerText = 'No configurada';
-                document.getElementById('api-status').innerHTML = '<span class="text-rose-400"><i class="fa-solid fa-exclamation-triangle"></i> Necesitas una API Key</span>';
+        // Cargar claves guardadas desde localStorage
+        function loadKeysFromStorage() {
+            const stored = localStorage.getItem('jarvis_multi_keys');
+            if (stored) {
+                try {
+                    const keys = JSON.parse(stored);
+                    if (Array.isArray(keys) && keys.length) {
+                        apiKeysPool = keys.filter(k => k.trim().length > 0);
+                        document.getElementById('multi-keys-input').value = apiKeysPool.join('\n');
+                        updateKeysUI();
+                        logEvent(`Cargadas ${apiKeysPool.length} claves API desde almacenamiento.`, "emerald");
+                        if (apiKeysPool.length) activeKeyIndex = 0;
+                        else activeKeyIndex = -1;
+                        updateApiKeyIndicator();
+                        return;
+                    }
+                } catch(e) {}
             }
+            apiKeysPool = [];
+            activeKeyIndex = -1;
+            updateApiKeyIndicator();
+            document.getElementById('keys-status').innerHTML = '<span class="text-rose-400">No hay claves configuradas</span>';
+            document.getElementById('keys-list').innerHTML = '';
         }
 
-        // Guardar nueva clave
-        document.getElementById('save-api-key').addEventListener('click', () => {
-            const newKey = document.getElementById('custom-api-key').value.trim();
-            if (!newKey) {
-                logEvent("Por favor ingresa una API Key válida", "red");
+        function saveKeysToStorage() {
+            localStorage.setItem('jarvis_multi_keys', JSON.stringify(apiKeysPool));
+            updateKeysUI();
+        }
+
+        function updateKeysUI() {
+            const container = document.getElementById('keys-list');
+            const statusDiv = document.getElementById('keys-status');
+            if (!apiKeysPool.length) {
+                container.innerHTML = '';
+                statusDiv.innerHTML = '<span class="text-rose-400">⚠️ No hay claves. Agrega al menos una.</span>';
+                document.getElementById('active-key-label').innerText = 'Sin claves';
                 return;
             }
-            activeApiKey = newKey;
-            sessionStorage.setItem('jarvis_api_key', newKey);
-            document.getElementById('active-key-label').innerText = 'PERSONAL ✓';
-            document.getElementById('api-status').innerHTML = '<span class="text-emerald-400"><i class="fa-solid fa-check-circle"></i> Clave almacenada (válida hasta que caduque)</span>';
-            logEvent("API Key guardada. Ahora puedes usar J.A.R.V.I.S.", "emerald");
-            // Limpiar campo visual
-            document.getElementById('custom-api-key').value = '••••••••••••••••';
-            // Opcional: validar rápidamente
+            statusDiv.innerHTML = `<span class="text-emerald-400">✓ ${apiKeysPool.length} clave(s) activa(s). Fallback automático.</span>`;
+            container.innerHTML = apiKeysPool.map((key, idx) => `
+                <div class="key-badge">
+                    <span class="truncate max-w-[120px]">${maskKey(key)}</span>
+                    <button class="remove-key" data-index="${idx}"><i class="fa-solid fa-times-circle"></i></button>
+                </div>
+            `).join('');
+            document.querySelectorAll('.remove-key').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.dataset.index);
+                    if (!isNaN(idx)) {
+                        apiKeysPool.splice(idx, 1);
+                        saveKeysToStorage();
+                        if (apiKeysPool.length === 0) activeKeyIndex = -1;
+                        else if (activeKeyIndex >= apiKeysPool.length) activeKeyIndex = 0;
+                        updateApiKeyIndicator();
+                        logEvent(`Clave eliminada. Quedan ${apiKeysPool.length}.`, "amber");
+                    }
+                });
+            });
+            updateApiKeyIndicator();
+        }
+
+        function maskKey(key) { return key.substring(0, 8) + '••••' + key.substring(key.length-4); }
+
+        function updateApiKeyIndicator() {
+            const label = document.getElementById('active-key-label');
+            if (!apiKeysPool.length) { label.innerText = 'Sin claves'; return; }
+            const idx = activeKeyIndex >= 0 ? activeKeyIndex : 0;
+            label.innerText = `CLAVE_${idx+1}`;
+        }
+
+        // Guardar nuevas claves desde el textarea
+        document.getElementById('save-keys-btn').addEventListener('click', () => {
+            const raw = document.getElementById('multi-keys-input').value;
+            const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
+            if (lines.length === 0) {
+                logEvent("No se ingresaron claves válidas.", "red");
+                return;
+            }
+            apiKeysPool = lines.map(l => l.trim());
+            activeKeyIndex = 0;
+            saveKeysToStorage();
+            logEvent(`${apiKeysPool.length} claves guardadas. Modo fallback activo.`, "emerald");
+        });
+        document.getElementById('clear-keys-btn').addEventListener('click', () => {
+            apiKeysPool = [];
+            activeKeyIndex = -1;
+            localStorage.removeItem('jarvis_multi_keys');
+            document.getElementById('multi-keys-input').value = '';
+            updateKeysUI();
+            logEvent("Todas las claves eliminadas.", "amber");
         });
 
-        // SYSTEM PROMPT (idéntico al anterior, pero mejorado)
-        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., un asistente de IA que genera documentos profesionales. Para documentos Word, debes producir exclusivamente código HTML completo dentro de las etiquetas [START-WORD] y [END-WORD].
+        function rotateApiKey() {
+            statistics.failures++;
+            document.getElementById('stat-failures').innerText = statistics.failures;
+            if (apiKeysPool.length === 0) {
+                logEvent("No hay claves disponibles para rotar.", "red");
+                return false;
+            }
+            const newIndex = (activeKeyIndex + 1) % apiKeysPool.length;
+            activeKeyIndex = newIndex;
+            updateApiKeyIndicator();
+            logEvent(`Fallback a clave ${activeKeyIndex+1} de ${apiKeysPool.length}`, "amber");
+            return true;
+        }
 
-REGLAS ESTRICTAS:
-- **NEGRITAS**: Usa SIEMPRE <strong>texto</strong>. NUNCA uses **texto** ni __texto__.
-- **LISTAS**: Usa <ul><li>ítem</li></ul> para viñetas. No uses caracteres "•" directamente.
-- **TABLAS**: Usa <table border="1" cellpadding="5" style="border-collapse:collapse;"> con <thead><tr><th>...</th></tr></thead> y <tbody>.
-- **CODIFICACIÓN**: Incluye <meta charset="UTF-8"> en el <head>. Todos los acentos, eñes, etc. deben escribirse correctamente (ej: "Informe", "año", "contribución").
-- **ESTRUCTURA**: El HTML debe comenzar con <!DOCTYPE html> y contener <html><head><style>... (opcional) </style></head><body>... todo el contenido </body></html>.
-- **CONFIGURACIÓN DE PÁGINA**: Dentro del <style> incluye @page { size: A4 portrait; margin: 2.54cm; } a menos que el usuario pida otra orientación.
-- **PROHIBIDO**: No emitas ningún texto fuera de las etiquetas [START-WORD] y [END-WORD]. No incluyas fragmentos CSS sueltos ni markdown. Todo el contenido del documento debe estar dentro del <body>.
+        // SYSTEM PROMPT reforzado con ejemplos claros para Excel y PPT
+        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de IA. Debes generar documentos usando etiquetas específicas. Para cada tipo, usa estas marcas:
 
-Ejemplo de respuesta correcta:
-[START-WORD]
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Informe</title><style>@page { size: A4 portrait; margin: 2.54cm; } body { font-family: Calibri, Arial, sans-serif; }</style></head>
-<body>
-<h1>Informe de Ventas</h1>
-<p>Estimado <strong>Señor</strong>, los resultados son <strong>positivos</strong>.</p>
-<ul><li>Crecimiento del <strong>12%</strong> en ventas.</li></ul>
-<table border="1"><tr><th>Producto</th><th>Ingresos</th></tr><tr><td>Electrónica</td><td>250.000 €</td></tr></table>
-</body></html>
-[END-WORD]
+- WORD (documento .docx): [START-WORD] ... contenido HTML completo ... [END-WORD]
+- EXCEL (.xlsx): [START-EXCEL] ... JSON con estructura {"sheetName":"...","headers":["A","B"],"rows":[["v1","v2"]]} ... [END-EXCEL]
+- POWERPOINT (.pptx): [START-PPT] ... JSON con estructura {"presentationTitle":"...","slides":[{"title":"...","bullets":["..."]}]} ... [END-PPT]
+- MAPA CXL: [START-CXL] ... JSON con conceptos y conexiones ... [END-CXL]
+- TXT: [START-TXT filename="nombre.txt"] ... texto ... [END-TXT]
+
+REGLAS IMPORTANTES:
+- Para EXCEL: el JSON debe ser válido. Usa sheetName, headers (array), rows (array de arrays).
+- Para POWERPOINT: el JSON debe tener presentationTitle y un array de slides, cada uno con title y bullets (array de strings).
+- Para WORD: genera HTML completo con <strong> para negritas, <ul>/<li> para viñetas, y <table> para tablas. Incluye <meta charset="UTF-8"> y @page para márgenes.
+- No agregues texto fuera de las etiquetas. Sé conciso pero completo.
+
+Ejemplo EXCEL:
+[START-EXCEL]
+{"sheetName":"Presupuesto","headers":["Categoría","Monto","Real"],"rows":[["Ventas",12500,13200],["Costos",8000,7900]]}
+[END-EXCEL]
+
+Ejemplo PPT:
+[START-PPT]
+{"presentationTitle":"Estrategia 2026","slides":[{"title":"Visión","bullets":["Crecimiento 20%","Nuevos mercados"]},{"title":"Metas","bullets":["Innovación","Sostenibilidad"]}]}
+[END-PPT]
 
 Ahora genera el documento solicitado por el usuario.`;
 
         // Elementos DOM
-        const activeKeyLabel = document.getElementById('active-key-label');
-        const activeModelLabel = document.getElementById('active-model-label');
         const statRequests = document.getElementById('stat-requests');
         const statLatency = document.getElementById('stat-latency');
         const statFiles = document.getElementById('stat-files');
-        const statFailures = document.getElementById('stat-failures');
         const terminalLog = document.getElementById('terminal-log');
         const dropZone = document.getElementById('drop-zone');
         const imageInput = document.getElementById('image-input');
@@ -249,6 +323,9 @@ Ahora genera el documento solicitado por el usuario.`;
         const loadingTimer = document.getElementById('loading-timer');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
+        const activeModelLabel = document.getElementById('active-model-label');
+
+        function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' '); }
 
         function logEvent(msg, color="cyan") { 
             const time = new Date().toTimeString().slice(0,8);
@@ -257,17 +334,6 @@ Ahora genera el documento solicitado por el usuario.`;
             div.innerText = `[${time}] ${msg}`;
             terminalLog.appendChild(div);
             terminalLog.scrollTop = terminalLog.scrollHeight;
-        }
-
-        function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' '); }
-        function rotateApiKey() { 
-            statistics.failures++; 
-            statFailures.innerText = statistics.failures;
-            logEvent("La API Key actual es inválida o expiró. Por favor ingresa una nueva en el panel izquierdo.", "red");
-            activeApiKey = null;
-            sessionStorage.removeItem('jarvis_api_key');
-            document.getElementById('active-key-label').innerText = 'No configurada';
-            document.getElementById('api-status').innerHTML = '<span class="text-rose-400"><i class="fa-solid fa-exclamation-triangle"></i> Clave expirada, ingresa una nueva</span>';
         }
 
         // Imagen
@@ -317,21 +383,23 @@ Ahora genera el documento solicitado por el usuario.`;
 
         function formatResponse(t){
             let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
-                      .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel compilada</div>')
-                      .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PowerPoint</div>')
-                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa conceptual CXL</div>')
-                      .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo de texto</div>');
+                      .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel generada</div>')
+                      .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PPT generada</div>')
+                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa CXL generado</div>')
+                      .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo TXT generado</div>');
             r = r.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
             return r.replace(/\n/g,'<br>');
         }
 
         async function queryAI(prompt, imageBase64, retry=0){
-            if (!activeApiKey) {
-                appendMessage("jarvis","Señor, no hay una API Key configurada. Por favor ingrese su clave personal en el panel izquierdo (obténgala gratis en Google AI Studio).");
+            if (apiKeysPool.length === 0) {
+                appendMessage("jarvis","Señor, no hay claves API configuradas. Agregue al menos una en el panel izquierdo.");
                 loadingIndicator.classList.add('hidden');
                 return;
             }
-            const key = activeApiKey;
+            const currentKeyIndex = activeKeyIndex >= 0 ? activeKeyIndex : 0;
+            const key = apiKeysPool[currentKeyIndex];
+            if (!key) { rotateApiKey(); return queryAI(prompt, imageBase64, retry); }
             const model = MODELS_POOL[activeModelIndex];
             statistics.requests++; statRequests.innerText=statistics.requests;
             loadingIndicator.classList.remove('hidden');
@@ -353,18 +421,16 @@ Ahora genera el documento solicitado por el usuario.`;
                 clearInterval(timer);
                 statLatency.innerText=`${Math.round(performance.now()-start)}ms`;
                 
-                if(res.status === 400 || res.status === 403 || res.status === 401){
+                if (res.status === 400 || res.status === 401 || res.status === 403) {
                     const errData = await res.json();
-                    if(errData.error && (errData.error.message.includes("API key") || errData.error.message.includes("expired"))){
-                        logEvent("API Key expirada o inválida. Por favor renueva tu clave.", "red");
-                        rotateApiKey();
-                        loadingIndicator.classList.add('hidden');
-                        appendMessage("jarvis","Señor, la API Key que proporcionó ha expirado o es inválida. Por favor, ingrese una nueva clave válida desde el panel izquierdo.");
-                        return;
+                    if (errData.error && (errData.error.message.includes("API key") || errData.error.message.includes("expired") || errData.error.message.includes("invalid"))) {
+                        logEvent(`Clave ${currentKeyIndex+1} inválida/expirada. Rotando...`, "red");
+                        const rotated = rotateApiKey();
+                        if (rotated) return queryAI(prompt, imageBase64, retry+1);
+                        else { loadingIndicator.classList.add('hidden'); appendMessage("jarvis","Señor, todas las claves han fallado. Por favor, agregue nuevas claves."); return; }
                     }
                     throw new Error(`HTTP ${res.status}`);
                 }
-                
                 if(res.status===404 && activeModelIndex<MODELS_POOL.length-1){activeModelIndex++;updateModelIndicator();logEvent(`Cambio a modelo ${MODELS_POOL[activeModelIndex]}`, "amber");return queryAI(prompt,imageBase64,retry);}
                 if(!res.ok)throw new Error(`HTTP ${res.status}`);
                 const data=await res.json();
@@ -374,81 +440,104 @@ Ahora genera el documento solicitado por el usuario.`;
                 loadingIndicator.classList.add('hidden');
                 chatHistory.push({sender:"user",text:prompt},{sender:"jarvis",text:reply});
                 appendMessage("jarvis",reply);
-                parseAndGenerateFiles(reply, imageBase64);
+                parseAndGenerateFiles(reply);
                 if(imageBase64){selectedBase64Image=null;previewContainer.classList.add('hidden');dropZoneContent.classList.remove('hidden');}
             }catch(err){
                 clearInterval(timer);
-                if(err.message.includes("429")){
-                    logEvent("Límite de cuota alcanzado. Espera unos segundos.", "amber");
-                    setTimeout(()=>queryAI(prompt,imageBase64,retry+1),5000);
+                if(err.message.includes("429") || err.message.includes("quota")){
+                    logEvent("Cuota excedida para esta clave. Rotando...", "amber");
+                    const rotated = rotateApiKey();
+                    if (rotated) setTimeout(()=>queryAI(prompt,imageBase64,retry+1), 2000);
+                    else { loadingIndicator.classList.add('hidden'); appendMessage("jarvis","Señor, todas las claves excedieron su cuota. Espere o agregue nuevas."); }
                 } else {
                     loadingIndicator.classList.add('hidden');
-                    appendMessage("jarvis","Señor, error en la comunicación con Gemini. Verifique su clave o intente más tarde.");
+                    appendMessage("jarvis","Señor, error en la comunicación. Verifique sus claves o intente más tarde.");
                     logEvent(`Error: ${err.message}`,"red");
                 }
             }
         }
 
-        function parseAndGenerateFiles(text, userImageBase64=null){
+        function parseAndGenerateFiles(text){
+            // Extraer WORD
             const wordMatch = text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
-            if(wordMatch){
-                let html = wordMatch[1].trim();
-                if(!html.includes('<!DOCTYPE html>')){
-                    html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento JARVIS</title><style>body{font-family:Calibri,Arial,sans-serif;}</style></head><body>${html}</body></html>`;
-                }
-                if(!html.includes('<meta charset="UTF-8') && !html.includes('<meta charset="utf-8')){
-                    html = html.replace('<head>', '<head><meta charset="UTF-8">');
-                }
-                if(!html.includes('@page')){
-                    html = html.replace('</style>', '@page { size: A4 portrait; margin: 2.54cm; }\n</style>');
-                }
-                generateWord(html);
+            if(wordMatch) generateWord(wordMatch[1].trim());
+            // EXCEL
+            const excelMatch = text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
+            if(excelMatch) {
+                try {
+                    const data = JSON.parse(excelMatch[1].trim());
+                    generateExcel(data);
+                } catch(e) { logEvent(`Error parseando Excel: ${e.message}`, "red"); }
             }
-            const excelMatch=text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
-            if(excelMatch) try{ generateExcel(JSON.parse(excelMatch[1].trim())); }catch(e){ logEvent(`Error Excel: ${e.message}`,"red"); }
-            const pptMatch=text.match(/\[START-PPT\]([\s\S]*?)\[END-PPT\]/);
-            if(pptMatch) try{ generatePPT(JSON.parse(pptMatch[1].trim())); }catch(e){ logEvent(`Error PPT: ${e.message}`,"red"); }
-            const cxlMatch=text.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/);
-            if(cxlMatch) try{ generateCXL(JSON.parse(cxlMatch[1].trim())); }catch(e){ logEvent(`Error CXL: ${e.message}`,"red"); }
-            const txtRegex=/\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g;
-            let m; while((m=txtRegex.exec(text))!==null) generateTXT(m[1],m[2]);
+            // PPT
+            const pptMatch = text.match(/\[START-PPT\]([\s\S]*?)\[END-PPT\]/);
+            if(pptMatch) {
+                try {
+                    const data = JSON.parse(pptMatch[1].trim());
+                    generatePPT(data);
+                } catch(e) { logEvent(`Error parseando PPT: ${e.message}`, "red"); }
+            }
+            // CXL
+            const cxlMatch = text.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/);
+            if(cxlMatch) {
+                try {
+                    const data = JSON.parse(cxlMatch[1].trim());
+                    generateCXL(data);
+                } catch(e) { logEvent(`Error parseando CXL: ${e.message}`, "red"); }
+            }
+            // TXT
+            const txtRegex = /\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g;
+            let m;
+            while((m=txtRegex.exec(text)) !== null) generateTXT(m[1], m[2]);
         }
 
         function generateWord(htmlString){
-            const filename = `informe_jarvis_${Date.now()}.docx`;
+            if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`;
+            const filename = `documento_${Date.now()}.docx`;
             const blob = window.htmlDocx.asBlob(htmlString);
-            addToVault(filename, "docx", () => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
-            });
-            logEvent(`Documento Word generado: ${filename}`, "emerald");
+            addToVault(filename, "docx", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
+            logEvent(`Word generado: ${filename}`, "emerald");
         }
 
         function generateExcel(data){
-            const sheetName=data.sheetName||"Datos"; const headers=data.headers||["Campo1","Campo2"]; const rows=data.rows||[];
-            const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-            XLSX.utils.book_append_sheet(wb,ws,sheetName);
-            const filename=`${sheetName.toLowerCase().replace(/\s/g,'_')}_data.xlsx`;
-            addToVault(filename,"xlsx",()=>XLSX.writeFile(wb,filename));
+            const sheetName = data.sheetName || "Datos";
+            const headers = data.headers || ["Columna1", "Columna2"];
+            const rows = data.rows || [];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            const filename = `${sheetName.toLowerCase().replace(/\s/g,'_')}_${Date.now()}.xlsx`;
+            addToVault(filename, "xlsx", () => XLSX.writeFile(wb, filename));
+            logEvent(`Excel generado: ${filename}`, "emerald");
         }
+
         function generatePPT(data){
-            const pptx=new PptxGenJS(); pptx.layout='LAYOUT_16x9';
-            const titleSlide=pptx.addSlide(); titleSlide.addText(data.presentationTitle||"Presentación",{x:0.5,y:2.2,w:'90%',h:1.5,fontSize:38,bold:true,color:'00f0ff',align:'center'});
-            (data.slides||[]).forEach(s=>{ const slide=pptx.addSlide(); slide.addText(s.title,{x:0.5,y:0.4,fontSize:24,bold:true,color:'00f0ff'}); slide.addText((s.bullets||[]).join('\n'),{x:0.8,y:1.4,w:'84%',h:4.0,fontSize:15,bullet:true}); });
-            const filename=`${(data.presentationTitle||"presentacion").toLowerCase().replace(/\s/g,'_')}.pptx`;
-            addToVault(filename,"pptx",()=>pptx.writeFile({fileName:filename}));
+            const pptx = new PptxGenJS(); pptx.layout='LAYOUT_16x9';
+            const titleSlide = pptx.addSlide(); titleSlide.addText(data.presentationTitle||"Presentación", {x:0.5,y:2.2,w:'90%',h:1.5,fontSize:38,bold:true,color:'00f0ff',align:'center'});
+            (data.slides || []).forEach(s => {
+                const slide = pptx.addSlide(); slide.addText(s.title, {x:0.5,y:0.4,fontSize:24,bold:true,color:'00f0ff'});
+                slide.addText((s.bullets || []).join('\n'), {x:0.8,y:1.4,w:'84%',h:4.0,fontSize:15,bullet:true});
+            });
+            const filename = `presentacion_${Date.now()}.pptx`;
+            addToVault(filename, "pptx", () => pptx.writeFile({fileName: filename}));
+            logEvent(`PPT generado: ${filename}`, "emerald");
         }
+
         function generateCXL(data){
             const title=data.title||"Mapa"; const concepts=data.concepts||[]; const phrases=data.linkingPhrases||[]; const conns=data.connections||[];
-            let xml=`<?xml version="1.0" encoding="UTF-8"?><cmap><res-meta><dc:title>${title}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${c.id}" label="${c.label}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${p.id}" label="${p.label}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${c.from}" to-id="${c.to}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${c.id}" x="${100+ i*120}" y="100" width="145" height="45" background-color="220,245,255,255"/>`).join('')}</concept-appearance-list></map></cmap>`;
-            const filename=`${title.toLowerCase().replace(/\s/g,'_')}.cxl`;
+            let xml=`<?xml version="1.0" encoding="UTF-8"?><cmap><res-meta><dc:title>${title}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${c.id}" label="${c.label}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${p.id}" label="${p.label}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${c.from}" to-id="${c.to}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${c.id}" x="${100+ i*120}" y="100" width="145" height="45"/>`).join('')}</concept-appearance-list></map></cmap>`;
+            const filename=`${title.toLowerCase().replace(/\s/g,'_')}_${Date.now()}.cxl`;
             const blob=new Blob([xml],{type:"text/xml;charset=utf-8"});
             addToVault(filename,"cxl",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
+            logEvent(`CXL generado: ${filename}`, "emerald");
         }
+
         function generateTXT(filename,content){
             const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
             addToVault(filename,"txt",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
+            logEvent(`TXT generado: ${filename}`, "emerald");
         }
+
         function addToVault(filename,type,downloadFn){
             statistics.filesGenerated++; statFiles.innerText=statistics.filesGenerated;
             vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
@@ -459,14 +548,13 @@ Ahora genera el documento solicitado por el usuario.`;
             row.querySelector('button').addEventListener('click',downloadFn);
             vaultList.prepend(row);
             vaultCount.innerText=`${statistics.filesGenerated} ARCHIVOS`;
-            logEvent(`Archivo ${filename} guardado`,"emerald");
         }
 
         window.addEventListener('DOMContentLoaded',()=>{
-            loadApiKey();
+            loadKeysFromStorage();
             updateModelIndicator();
             userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
-            logEvent("J.A.R.V.I.S. listo. Configure su API Key para empezar.","cyan");
+            logEvent("J.A.R.V.I.S. listo. Configure sus claves API en el panel izquierdo.","cyan");
         });
     </script>
 </body>
