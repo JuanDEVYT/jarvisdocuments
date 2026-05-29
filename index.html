@@ -10,6 +10,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
         :root {
@@ -73,7 +74,7 @@
             </div>
             <div>
                 <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v5.2</span>
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v6.0</span>
                 </h1>
                 <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
             </div>
@@ -139,6 +140,7 @@
                         <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Mapa SDLC (CXL)</option>
                         <option value="Genera un presupuesto financiero en Excel con 3 columnas: 'Categoría', 'Presupuesto', 'Real'. Incluye 5 filas de ejemplo.">Presupuesto (Excel)</option>
                         <option value="Prepara una presentación de 4 diapositivas sobre Inteligencia Artificial en 2026, con títulos y viñetas.">Diapositivas IA (PPT)</option>
+                        <option value="Crea un paquete de recursos para Minecraft (formato .mcpack) con un shader básico. Incluye pack.mcmeta, shaders/core/rendertype_solid.vsh y .fsh, y una textura de ejemplo en base64.">Generar MCPack (Shader)</option>
                     </select>
                 </div>
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
@@ -149,7 +151,7 @@
                 </div>
                 <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
                 <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2">
-                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ej: 'Genera un presupuesto en Excel' o 'Crea diapositivas sobre IA'"></textarea>
+                    <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ej: 'Genera un paquete de recursos .mcpack con un shader de tono cálido'"></textarea>
                     <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
@@ -160,7 +162,7 @@
 
     <script>
         // ---------- GESTIÓN DE MÚLTIPLES API KEYS (personal storage) ----------
-        let apiKeysPool = [];      // array de claves activas
+        let apiKeysPool = [];
         let activeKeyIndex = 0;
         let selectedBase64Image = null;
         let chatHistory = [];
@@ -230,7 +232,6 @@
         }
 
         function maskKey(key) { return key.substring(0, 8) + '••••' + key.substring(key.length-4); }
-
         function updateApiKeyIndicator() {
             const label = document.getElementById('active-key-label');
             if (!apiKeysPool.length) { label.innerText = 'Sin claves'; return; }
@@ -273,43 +274,36 @@
             return true;
         }
 
-        // SYSTEM PROMPT MEJORADO: ahora J.A.R.V.I.S. genera las coordenadas para CXL
+        // SYSTEM PROMPT MEJORADO: ahora incluye ZIP y MCPACK
         const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de IA. Debes generar documentos usando etiquetas específicas. Para cada tipo, usa estas marcas:
 
-- WORD (documento .docx): [START-WORD] ... contenido HTML completo ... [END-WORD]
-- EXCEL (.xlsx): [START-EXCEL] ... JSON con estructura {"sheetName":"...","headers":["A","B"],"rows":[["v1","v2"]]} ... [END-EXCEL]
-- POWERPOINT (.pptx): [START-PPT] ... JSON con estructura {"presentationTitle":"...","slides":[{"title":"...","bullets":["..."]}]} ... [END-PPT]
-- MAPA CXL (CmapTools): [START-CXL] ... JSON con estructura:
+- WORD (.docx): [START-WORD] ... HTML ... [END-WORD]
+- EXCEL (.xlsx): [START-EXCEL] ... JSON con sheetName, headers, rows ... [END-EXCEL]
+- POWERPOINT (.pptx): [START-PPT] ... JSON con presentationTitle, slides ... [END-PPT]
+- MAPA CXL: [START-CXL] ... JSON con concepts, linkingPhrases, connections (con coordenadas x,y) ... [END-CXL]
+- TXT: [START-TXT filename="..."] ... texto ... [END-TXT]
+- ZIP / MCPACK: [START-ZIP] o [START-MCPACK] ... JSON con estructura:
   {
-    "title": "Título del mapa",
-    "concepts": [{"id": "c1", "label": "Concepto raíz", "x": 400, "y": 200}, {"id": "c2", "label": "Otro concepto", "x": 600, "y": 300}],
-    "linkingPhrases": [{"id": "lp1", "label": "conecta con", "x": 500, "y": 250}],
-    "connections": [{"from": "c1", "to": "lp1"}, {"from": "lp1", "to": "c2"}]
+    "filename": "nombre_del_archivo.zip",   // o .mcpack
+    "files": [
+      { "path": "pack.mcmeta", "content": "{\"pack\":{\"pack_format\":9,\"description\":\"Mi shader\"}}" },
+      { "path": "shaders/core/rendertype_solid.vsh", "content": "// vertex shader code" },
+      { "path": "textures/block/stone.png", "content": "data:image/png;base64,iVBORw0KGgo..." }
+    ]
   }
-  IMPORTANTE: TÚ como J.A.R.V.I.S. debes decidir las coordenadas (x, y) para cada concepto y frase de enlace. Usa un rango de 100 a 800 para x y de 100 a 600 para y. Distribuye los elementos de manera lógica y legible (por ejemplo, jerarquía descendente, flujo horizontal, o en forma de árbol). No dejes que el sistema las genere automáticamente. Asegúrate de que no haya superposiciones.
-- TXT: [START-TXT filename="nombre.txt"] ... texto ... [END-TXT]
+  El contenido puede ser texto plano o una cadena base64 con prefijo "data:...;base64,". El sistema empaquetará los archivos en un ZIP descargable.
+  Para MCPACK, simplemente se renombra la extensión a .mcpack (es un ZIP estándar).
+- Las imágenes en base64 (del usuario) pueden ser incluidas en el ZIP.
 
-REGLAS IMPORTANTES:
-- Para EXCEL: JSON válido. Usa sheetName, headers (array), rows (array de arrays).
-- Para POWERPOINT: presentationTitle y slides (cada uno con title y bullets).
-- Para WORD: HTML completo con <strong> para negritas, <ul>/<li> para viñetas, y <tr> para tablas. Incluye <meta charset="UTF-8"> y @page.
-- Para CXL: proporciona conceptos con coordenadas (x,y) y frases de enlace también con coordenadas. El sistema usará exactamente esas posiciones.
-- No agregues texto fuera de las etiquetas. Sé conciso pero completo.
+REGLAS:
+- Para EXCEL/PPT/CXL sigue los ejemplos previos.
+- Para ZIP: especifica la ruta completa y el contenido. Si es binario, usa base64.
+- No agregues texto fuera de las etiquetas.
 
-Ejemplo EXCEL:
-[START-EXCEL]
-{"sheetName":"Presupuesto","headers":["Categoría","Monto","Real"],"rows":[["Ventas",12500,13200],["Costos",8000,7900]]}
-[END-EXCEL]
-
-Ejemplo PPT:
-[START-PPT]
-{"presentationTitle":"Estrategia 2026","slides":[{"title":"Visión","bullets":["Crecimiento 20%","Nuevos mercados"]},{"title":"Metas","bullets":["Innovación","Sostenibilidad"]}]}
-[END-PPT]
-
-Ejemplo CXL (con coordenadas definidas por J.A.R.V.I.S.):
-[START-CXL]
-{"title":"Mapa de Inteligencia Artificial","concepts":[{"id":"c1","label":"Inteligencia Artificial","x":400,"y":150},{"id":"c2","label":"Machine Learning","x":250,"y":300},{"id":"c3","label":"Deep Learning","x":550,"y":300}],"linkingPhrases":[{"id":"lp1","label":"incluye","x":320,"y":225},{"id":"lp2","label":"subcampo","x":480,"y":225}],"connections":[{"from":"c1","to":"lp1"},{"from":"lp1","to":"c2"},{"from":"c1","to":"lp2"},{"from":"lp2","to":"c3"}]}
-[END-CXL]
+Ejemplo ZIP:
+[START-ZIP]
+{"filename":"shader_pack.zip","files":[{"path":"pack.mcmeta","content":"{\"pack\":{\"pack_format\":9,\"description\":\"Shader personalizado\"}}"},{"path":"shaders/core/rendertype_solid.vsh","content":"#version 150\nvoid main(){gl_Position=ftransform();}"}]}
+[END-ZIP]
 
 Ahora genera el documento solicitado por el usuario.`;
 
@@ -396,8 +390,10 @@ Ahora genera el documento solicitado por el usuario.`;
             let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
                       .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel generada</div>')
                       .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PPT generada</div>')
-                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa CXL generado (con diseño definido por J.A.R.V.I.S.)</div>')
-                      .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo TXT generado</div>');
+                      .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa CXL generado</div>')
+                      .replace(/\[START-TXT[^\]]*\][\s\S]*?\[END-TXT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-gray-400 my-1"><i class="fa-regular fa-file-lines"></i> Archivo TXT generado</div>')
+                      .replace(/\[START-ZIP\][\s\S]*?\[END-ZIP\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-purple-400 my-1"><i class="fa-regular fa-file-archive"></i> Archivo ZIP generado</div>')
+                      .replace(/\[START-MCPACK\][\s\S]*?\[END-MCPACK\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-purple-400 my-1"><i class="fa-brands fa-minecraft"></i> Paquete MCPack (Minecraft) generado</div>');
             r = r.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
             return r.replace(/\n/g,'<br>');
         }
@@ -475,33 +471,35 @@ Ahora genera el documento solicitado por el usuario.`;
             // EXCEL
             const excelMatch = text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
             if(excelMatch) {
-                try {
-                    const data = JSON.parse(excelMatch[1].trim());
-                    generateExcel(data);
-                } catch(e) { logEvent(`Error parseando Excel: ${e.message}`, "red"); }
+                try { generateExcel(JSON.parse(excelMatch[1].trim())); } catch(e) { logEvent(`Error Excel: ${e.message}`, "red"); }
             }
             // PPT
             const pptMatch = text.match(/\[START-PPT\]([\s\S]*?)\[END-PPT\]/);
             if(pptMatch) {
-                try {
-                    const data = JSON.parse(pptMatch[1].trim());
-                    generatePPT(data);
-                } catch(e) { logEvent(`Error parseando PPT: ${e.message}`, "red"); }
+                try { generatePPT(JSON.parse(pptMatch[1].trim())); } catch(e) { logEvent(`Error PPT: ${e.message}`, "red"); }
             }
-            // CXL - ahora J.A.R.V.I.S. proporciona coordenadas
+            // CXL
             const cxlMatch = text.match(/\[START-CXL\]([\s\S]*?)\[END-CXL\]/);
             if(cxlMatch) {
-                try {
-                    const data = JSON.parse(cxlMatch[1].trim());
-                    generateCXL(data);
-                } catch(e) { logEvent(`Error parseando CXL: ${e.message} - Asegúrate de que J.A.R.V.I.S. haya incluido coordenadas x,y`, "red"); }
+                try { generateCXL(JSON.parse(cxlMatch[1].trim())); } catch(e) { logEvent(`Error CXL: ${e.message}`, "red"); }
             }
             // TXT
             const txtRegex = /\[START-TXT\s+filename="([^"]+)"\]([\s\S]*?)\[END-TXT\]/g;
             let m;
             while((m=txtRegex.exec(text)) !== null) generateTXT(m[1], m[2]);
+            // ZIP
+            const zipMatch = text.match(/\[START-ZIP\]([\s\S]*?)\[END-ZIP\]/);
+            if(zipMatch) {
+                try { generateZip(JSON.parse(zipMatch[1].trim()), false); } catch(e) { logEvent(`Error ZIP: ${e.message}`, "red"); }
+            }
+            // MCPACK
+            const mcpackMatch = text.match(/\[START-MCPACK\]([\s\S]*?)\[END-MCPACK\]/);
+            if(mcpackMatch) {
+                try { generateZip(JSON.parse(mcpackMatch[1].trim()), true); } catch(e) { logEvent(`Error MCPACK: ${e.message}`, "red"); }
+            }
         }
 
+        // --- Generadores existentes ---
         function generateWord(htmlString){
             if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`;
             const filename = `documento_${Date.now()}.docx`;
@@ -509,7 +507,6 @@ Ahora genera el documento solicitado por el usuario.`;
             addToVault(filename, "docx", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
             logEvent(`Word generado: ${filename}`, "emerald");
         }
-
         function generateExcel(data){
             const sheetName = data.sheetName || "Datos";
             const headers = data.headers || ["Columna1", "Columna2"];
@@ -521,7 +518,6 @@ Ahora genera el documento solicitado por el usuario.`;
             addToVault(filename, "xlsx", () => XLSX.writeFile(wb, filename));
             logEvent(`Excel generado: ${filename}`, "emerald");
         }
-
         function generatePPT(data){
             const pptx = new PptxGenJS(); pptx.layout='LAYOUT_16x9';
             const titleSlide = pptx.addSlide(); titleSlide.addText(data.presentationTitle||"Presentación", {x:0.5,y:2.2,w:'90%',h:1.5,fontSize:38,bold:true,color:'00f0ff',align:'center'});
@@ -533,126 +529,81 @@ Ahora genera el documento solicitado por el usuario.`;
             addToVault(filename, "pptx", () => pptx.writeFile({fileName: filename}));
             logEvent(`PPT generado: ${filename}`, "emerald");
         }
-
-        // Función que respeta las coordenadas provistas por J.A.R.V.I.S.
-        function escapeXml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        function generateCXL(data) {
-            const title = escapeXml(data.title || "Mapa Conceptual");
+        function generateCXL(data){
+            const title = data.title || "Mapa";
             const concepts = data.concepts || [];
-            const linkingPhrases = data.linkingPhrases || [];
-            const connections = data.connections || [];
-
-            // Validar que cada concepto tenga coordenadas, si no, asignar una posición por defecto (pero idealmente JARVIS las da)
-            concepts.forEach((c, idx) => {
-                if (c.x === undefined || c.y === undefined) {
-                    const angle = (idx / Math.max(1, concepts.length)) * 2 * Math.PI;
-                    const radius = 200 + (idx % 3) * 60;
-                    c.x = Math.round(400 + Math.cos(angle) * radius);
-                    c.y = Math.round(250 + Math.sin(angle) * radius);
-                    logEvent(`Advertencia: El concepto "${c.label}" no tenía coordenadas. Se asignaron automáticas.`, "amber");
-                }
-            });
-            linkingPhrases.forEach((lp, idx) => {
-                if (lp.x === undefined || lp.y === undefined) {
-                    lp.x = 300 + (idx % 5) * 90;
-                    lp.y = 400 + Math.floor(idx / 5) * 70;
-                    logEvent(`Advertencia: La frase "${lp.label}" no tenía coordenadas. Se asignaron automáticas.`, "amber");
-                }
-            });
-
-            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-            xml += `<cmap xmlns="http://cmap.ihmc.us/xml/cmap/" xmlns:dc="http://purl.org/dc/elements/1.1/">\n`;
-            xml += `  <res-meta>\n`;
-            xml += `    <dc:title>${title}</dc:title>\n`;
-            xml += `    <dc:creator>J.A.R.V.I.S.</dc:creator>\n`;
-            xml += `    <dc:format>application/x-cmap</dc:format>\n`;
-            xml += `  </res-meta>\n`;
-            xml += `  <map>\n`;
-            
-            xml += `    <concept-list>\n`;
-            concepts.forEach(c => {
-                xml += `      <concept id="${escapeXml(c.id)}" label="${escapeXml(c.label)}" />\n`;
-            });
-            xml += `    </concept-list>\n`;
-            
-            xml += `    <linking-phrase-list>\n`;
-            linkingPhrases.forEach(lp => {
-                xml += `      <linking-phrase id="${escapeXml(lp.id)}" label="${escapeXml(lp.label)}" />\n`;
-            });
-            xml += `    </linking-phrase-list>\n`;
-            
-            xml += `    <connection-list>\n`;
-            connections.forEach((conn, idx) => {
-                xml += `      <connection id="conn_${idx}" from-id="${escapeXml(conn.from)}" to-id="${escapeXml(conn.to)}" />\n`;
-            });
-            xml += `    </connection-list>\n`;
-            
-            xml += `    <concept-appearance-list>\n`;
-            concepts.forEach(c => {
-                xml += `      <concept-appearance id="${escapeXml(c.id)}" x="${c.x}" y="${c.y}" width="130" height="40" background-color="230,240,255,255" border-color="0,90,112,255" border-thickness="2" border-shape="rounded-rectangle" font-color="0,30,50,255" font-size="12" font-style="bold" />\n`;
-            });
-            xml += `    </concept-appearance-list>\n`;
-            
-            xml += `    <linking-phrase-appearance-list>\n`;
-            linkingPhrases.forEach(lp => {
-                xml += `      <linking-phrase-appearance id="${escapeXml(lp.id)}" x="${lp.x}" y="${lp.y}" width="90" height="30" font-color="0,90,112,255" font-size="10" font-style="plain" background-color="255,255,255,255" />\n`;
-            });
-            xml += `    </linking-phrase-appearance-list>\n`;
-            
-            xml += `    <connection-appearance-list>\n`;
-            connections.forEach((_, idx) => {
-                xml += `      <connection-appearance id="conn_${idx}" arrowhead="if-to-concept" line-style="straight" line-color="0,90,112,255" line-thickness="2" />\n`;
-            });
-            xml += `    </connection-appearance-list>\n`;
-            
-            xml += `  </map>\n`;
-            xml += `</cmap>`;
-            
-            const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}.cxl`;
-            const blob = new Blob([xml], { type: "application/xml;charset=utf-8" });
-            addToVault(filename, "cxl", () => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                URL.revokeObjectURL(url);
-            });
-            logEvent(`CXL generado con diseño de J.A.R.V.I.S.: ${filename}`, "emerald");
+            const phrases = data.linkingPhrases || [];
+            const conns = data.connections || [];
+            let xml = `<?xml version="1.0" encoding="UTF-8"?><cmap xmlns="http://cmap.ihmc.us/xml/cmap/"><res-meta><dc:title>${escapeXml(title)}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${escapeXml(c.id)}" label="${escapeXml(c.label)}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${escapeXml(p.id)}" label="${escapeXml(p.label)}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${escapeXml(c.from)}" to-id="${escapeXml(c.to)}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${escapeXml(c.id)}" x="${c.x||200}" y="${c.y||150}" width="130" height="40" background-color="230,240,255,255"/>`).join('')}</concept-appearance-list></map></cmap>`;
+            const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g,'_')}_${Date.now()}.cxl`;
+            const blob = new Blob([xml], {type:"text/xml;charset=utf-8"});
+            addToVault(filename, "cxl", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
+            logEvent(`CXL generado: ${filename}`, "emerald");
         }
-
         function generateTXT(filename,content){
-            const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
-            addToVault(filename,"txt",()=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);});
+            const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
+            addToVault(filename, "txt", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
             logEvent(`TXT generado: ${filename}`, "emerald");
         }
 
-        function addToVault(filename,type,downloadFn){
-            statistics.filesGenerated++; statFiles.innerText=statistics.filesGenerated;
+        // NUEVO: Generador de ZIP / MCPACK usando JSZip
+        async function generateZip(data, isMcpack = false) {
+            const filename = data.filename || (isMcpack ? "pack.mcpack" : "archivo.zip");
+            const files = data.files || [];
+            const zip = new JSZip();
+            
+            for (const file of files) {
+                let content = file.content;
+                // Si el contenido es una data URL base64, extraer la parte base64
+                if (typeof content === 'string' && content.startsWith('data:')) {
+                    const base64Data = content.split(',')[1];
+                    if (base64Data) {
+                        zip.file(file.path, base64Data, { base64: true });
+                        continue;
+                    }
+                }
+                // Si no, tratar como texto
+                zip.file(file.path, content);
+            }
+            
+            const blob = await zip.generateAsync({ type: "blob" });
+            const finalFilename = filename.endsWith('.mcpack') || isMcpack ? filename.replace(/\.zip$/,'.mcpack') : filename;
+            addToVault(finalFilename, isMcpack ? "mcpack" : "zip", () => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = finalFilename;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+            logEvent(`${isMcpack ? "MCPack" : "ZIP"} generado: ${finalFilename}`, "emerald");
+        }
+
+        function escapeXml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m==='&') return '&amp;'; if (m==='<') return '&lt;'; if (m==='>') return '&gt;'; return m; }); }
+
+        function addToVault(filename, type, downloadFn){
+            statistics.filesGenerated++; statFiles.innerText = statistics.filesGenerated;
             vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
-            const row=document.createElement('div');
-            row.className="flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950";
-            let icon="fa-file-lines"; if(type==='docx') icon="fa-file-word text-cyan-400"; if(type==='xlsx') icon="fa-file-excel text-emerald-400"; if(type==='pptx') icon="fa-file-powerpoint text-orange-400"; if(type==='cxl') icon="fa-diagram-project text-cyan-300";
-            row.innerHTML=`<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div><button class="bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>`;
-            row.querySelector('button').addEventListener('click',downloadFn);
+            const row = document.createElement('div');
+            row.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950";
+            let icon = "fa-file-lines";
+            if (type === 'docx') icon = "fa-file-word text-cyan-400";
+            else if (type === 'xlsx') icon = "fa-file-excel text-emerald-400";
+            else if (type === 'pptx') icon = "fa-file-powerpoint text-orange-400";
+            else if (type === 'cxl') icon = "fa-diagram-project text-cyan-300";
+            else if (type === 'zip') icon = "fa-file-archive text-purple-400";
+            else if (type === 'mcpack') icon = "fa-brands fa-minecraft text-green-400";
+            row.innerHTML = `<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div><button class="bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>`;
+            row.querySelector('button').addEventListener('click', downloadFn);
             vaultList.prepend(row);
-            vaultCount.innerText=`${statistics.filesGenerated} ARCHIVOS`;
+            vaultCount.innerText = `${statistics.filesGenerated} ARCHIVOS`;
         }
 
         window.addEventListener('DOMContentLoaded',()=>{
             loadKeysFromStorage();
             updateModelIndicator();
             userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
-            logEvent("J.A.R.V.I.S. listo. Configure sus claves API.","cyan");
+            logEvent("J.A.R.V.I.S. listo. Capacidad mejorada: Word, Excel, PPT, CXL, ZIP y MCPack.","cyan");
         });
     </script>
 </body>
