@@ -509,9 +509,15 @@ Ahora genera el documento solicitado por el usuario.`;
             if(mcpackMatch) {
                 try { generateZip(JSON.parse(mcpackMatch[1].trim()), true); } catch(e) { logEvent(`Error MCPACK: ${e.message}`, "red"); }
             }
+        }        // --- Generadores existentes ---
+        function generateWord(htmlString){
+            if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`;
+            const filename = `documento_${Date.now()}.docx`;
+            const blob = window.htmlDocx.asBlob(htmlString);
+            addToVault(filename, "docx", () => blob);
+            logEvent(`Word generado: ${filename}`, "emerald");
         }
-
-        // --- Generadores existentes ---function generateWord(htmlString){ if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`; const filename = `documento_${Date.now()}.docx`; const blob = window.htmlDocx.asBlob(htmlString); addToVault(filename, "docx", () => blob); logEvent(`Word generado: ${filename}`, "emerald"); }        function generateExcel(data){
+        function generateExcel(data){
             const sheetName = data.sheetName || "Datos";
             const headers = data.headers || ["Columna1", "Columna2"];
             const rows = data.rows || [];
