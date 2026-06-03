@@ -156,9 +156,19 @@
                 </form>
             </div>
         </section>
-    </main>
+    </main>    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — Servidores JuandreXter</footer>
 
-    <footer class="mt-4 border-t border-cyan-950 pt-2.5 text-[10px] text-cyan-600 text-center">J.A.R.V.I.S. — Servidores JuandreXter</footer>
+    <!-- Modal para gestión de cuentas de Google Drive -->
+    <div id="drive-accounts-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-900 border border-cyan-700 p-6 rounded-lg w-96 max-w-[90%]">
+            <h2 class="hud-font text-lg text-cyan-400 mb-3">Cuentas de Google Drive</h2>
+            <div id="accounts-list" class="flex flex-col gap-2 mb-4 max-h-40 overflow-y-auto"></div>
+            <div class="flex gap-2">
+                <button id="add-drive-account-btn" class="bg-cyan-900 border border-cyan-600 px-4 py-2 text-sm text-cyan-300 rounded hover:bg-cyan-800 flex-1"><i class="fa-brands fa-google mr-1"></i> Añadir cuenta</button>
+                <button id="close-accounts-modal" class="bg-slate-700 border border-slate-600 px-4 py-2 text-sm text-slate-300 rounded hover:bg-slate-600">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // ---------- GESTIÓN DE MÚLTIPLES API KEYS (personal storage) ----------
@@ -167,8 +177,10 @@
         let selectedBase64Image = null;
         let chatHistory = [];
         let statistics = { requests: 0, failures: 0, filesGenerated: 0 };
-        const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];
-        let activeModelIndex = 0;
+        const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];        let activeModelIndex = 0;
+        const GOOGLE_CLIENT_ID = '575864646951-7ip16ncdk7q6f4r7bif1s59d5mn0vq4b.apps.googleusercontent.com';
+        const DRIVE_UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+        let googleDriveAccounts = [];
 
         function loadKeysFromStorage() {
             const stored = localStorage.getItem('jarvis_multi_keys');
@@ -499,15 +511,7 @@ Ahora genera el documento solicitado por el usuario.`;
             }
         }
 
-        // --- Generadores existentes ---
-        function generateWord(htmlString){
-            if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`;
-            const filename = `documento_${Date.now()}.docx`;
-            const blob = window.htmlDocx.asBlob(htmlString);
-            addToVault(filename, "docx", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
-            logEvent(`Word generado: ${filename}`, "emerald");
-        }
-        function generateExcel(data){
+        // --- Generadores existentes ---function generateWord(htmlString){ if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`; const filename = `documento_${Date.now()}.docx`; const blob = window.htmlDocx.asBlob(htmlString); addToVault(filename, "docx", () => blob); logEvent(`Word generado: ${filename}`, "emerald"); }        function generateExcel(data){
             const sheetName = data.sheetName || "Datos";
             const headers = data.headers || ["Columna1", "Columna2"];
             const rows = data.rows || [];
@@ -515,10 +519,11 @@ Ahora genera el documento solicitado por el usuario.`;
             const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
             const filename = `${sheetName.toLowerCase().replace(/\s/g,'_')}_${Date.now()}.xlsx`;
-            addToVault(filename, "xlsx", () => XLSX.writeFile(wb, filename));
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+            addToVault(filename, "xlsx", () => blob);
             logEvent(`Excel generado: ${filename}`, "emerald");
-        }
-        function generatePPT(data){
+        }        function generatePPT(data){
             const pptx = new PptxGenJS(); pptx.layout='LAYOUT_16x9';
             const titleSlide = pptx.addSlide(); titleSlide.addText(data.presentationTitle||"Presentación", {x:0.5,y:2.2,w:'90%',h:1.5,fontSize:38,bold:true,color:'00f0ff',align:'center'});
             (data.slides || []).forEach(s => {
@@ -526,10 +531,11 @@ Ahora genera el documento solicitado por el usuario.`;
                 slide.addText((s.bullets || []).join('\n'), {x:0.8,y:1.4,w:'84%',h:4.0,fontSize:15,bullet:true});
             });
             const filename = `presentacion_${Date.now()}.pptx`;
-            addToVault(filename, "pptx", () => pptx.writeFile({fileName: filename}));
-            logEvent(`PPT generado: ${filename}`, "emerald");
-        }
-        function generateCXL(data){
+            pptx.write({ outputType: 'blob' }).then(blob => {
+                addToVault(filename, "pptx", () => blob);
+                logEvent(`PPT generado: ${filename}`, "emerald");
+            });
+        }        function generateCXL(data){
             const title = data.title || "Mapa";
             const concepts = data.concepts || [];
             const phrases = data.linkingPhrases || [];
@@ -537,17 +543,15 @@ Ahora genera el documento solicitado por el usuario.`;
             let xml = `<?xml version="1.0" encoding="UTF-8"?><cmap xmlns="http://cmap.ihmc.us/xml/cmap/"><res-meta><dc:title>${escapeXml(title)}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${escapeXml(c.id)}" label="${escapeXml(c.label)}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${escapeXml(p.id)}" label="${escapeXml(p.label)}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${escapeXml(c.from)}" to-id="${escapeXml(c.to)}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${escapeXml(c.id)}" x="${c.x||200}" y="${c.y||150}" width="130" height="40" background-color="230,240,255,255"/>`).join('')}</concept-appearance-list></map></cmap>`;
             const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g,'_')}_${Date.now()}.cxl`;
             const blob = new Blob([xml], {type:"text/xml;charset=utf-8"});
-            addToVault(filename, "cxl", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
+            addToVault(filename, "cxl", () => blob);
             logEvent(`CXL generado: ${filename}`, "emerald");
-        }
-        function generateTXT(filename,content){
+        }        function generateTXT(filename,content){
             const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
-            addToVault(filename, "txt", () => { const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); });
+            addToVault(filename, "txt", () => blob);
             logEvent(`TXT generado: ${filename}`, "emerald");
         }
 
-        // NUEVO: Generador de ZIP / MCPACK usando JSZip
-        async function generateZip(data, isMcpack = false) {
+        // NUEVO: Generador de ZIP / MCPACK usando JSZip        async function generateZip(data, isMcpack = false) {
             const filename = data.filename || (isMcpack ? "pack.mcpack" : "archivo.zip");
             const files = data.files || [];
             const zip = new JSZip();
@@ -568,24 +572,15 @@ Ahora genera el documento solicitado por el usuario.`;
             
             const blob = await zip.generateAsync({ type: "blob" });
             const finalFilename = filename.endsWith('.mcpack') || isMcpack ? filename.replace(/\.zip$/,'.mcpack') : filename;
-            addToVault(finalFilename, isMcpack ? "mcpack" : "zip", () => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = finalFilename;
-                a.click();
-                URL.revokeObjectURL(url);
-            });
+            addToVault(finalFilename, isMcpack ? "mcpack" : "zip", () => blob);
             logEvent(`${isMcpack ? "MCPack" : "ZIP"} generado: ${finalFilename}`, "emerald");
         }
 
-        function escapeXml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m==='&') return '&amp;'; if (m==='<') return '&lt;'; if (m==='>') return '&gt;'; return m; }); }
-
-        function addToVault(filename, type, downloadFn){
+        function escapeXml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m==='&') return '&amp;'; if (m==='<') return '&lt;'; if (m==='>') return '&gt;'; return m; }); }        function addToVault(filename, type, getBlobFn){
             statistics.filesGenerated++; statFiles.innerText = statistics.filesGenerated;
             vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
             const row = document.createElement('div');
-            row.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950";
+            row.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950 relative";
             let icon = "fa-file-lines";
             if (type === 'docx') icon = "fa-file-word text-cyan-400";
             else if (type === 'xlsx') icon = "fa-file-excel text-emerald-400";
@@ -593,16 +588,170 @@ Ahora genera el documento solicitado por el usuario.`;
             else if (type === 'cxl') icon = "fa-diagram-project text-cyan-300";
             else if (type === 'zip') icon = "fa-file-archive text-purple-400";
             else if (type === 'mcpack') icon = "fa-brands fa-minecraft text-green-400";
-            row.innerHTML = `<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div><button class="bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>`;
-            row.querySelector('button').addEventListener('click', downloadFn);
+            row.innerHTML = `<div class="flex items-center gap-2"><i class="fa-solid ${icon}"></i><span class="text-xs truncate">${filename}</span></div>
+                <div class="flex items-center gap-1">
+                    <button class="download-btn bg-cyan-950 border border-cyan-800 text-[10px] px-2 py-1 rounded hover:bg-cyan-800"><i class="fa-solid fa-download"></i> Bajar</button>
+                    <div class="relative">
+                        <button class="more-options-btn bg-slate-800 border border-slate-700 text-[10px] px-2 py-1 rounded hover:bg-slate-700"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                        <div class="options-menu hidden absolute right-0 top-full mt-1 bg-slate-900 border border-cyan-800 rounded shadow-lg z-20 text-[10px] w-36">
+                            <button class="drive-upload-btn w-full text-left px-3 py-1.5 hover:bg-cyan-950 text-cyan-300"><i class="fa-brands fa-google-drive mr-1"></i> Subir a Drive</button>
+                        </div>
+                    </div>
+                </div>`;
+            row.querySelector('.download-btn').addEventListener('click', () => {
+                const blob = getBlobFn();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+            });
+            const moreBtn = row.querySelector('.more-options-btn');
+            const menu = row.querySelector('.options-menu');
+            moreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+            });
+            document.addEventListener('click', () => menu.classList.add('hidden'), { once: true });
+            row.querySelector('.drive-upload-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.add('hidden');
+                const blob = getBlobFn();
+                showDriveAccountsModal({ filename, blob, mimeType: getMimeType(type) });
+            });
             vaultList.prepend(row);
             vaultCount.innerText = `${statistics.filesGenerated} ARCHIVOS`;
+        }        // --- Funciones de Google Drive ---
+        function loadDriveAccounts() {
+            const saved = localStorage.getItem('jarvis_drive_accounts');
+            if (saved) {
+                try { googleDriveAccounts = JSON.parse(saved); } catch(e) {}
+            }
+        }
+        function saveDriveAccounts() {
+            localStorage.setItem('jarvis_drive_accounts', JSON.stringify(googleDriveAccounts));
+        }
+        function addNewGoogleAccount() {
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'openid email https://www.googleapis.com/auth/drive',
+                callback: async (tokenResponse) => {
+                    if (tokenResponse.error) {
+                        logEvent("Error al iniciar sesión en Google", "red");
+                        return;
+                    }
+                    const payload = JSON.parse(atob(tokenResponse.id_token.split('.')[1]));
+                    const email = payload.email;
+                    const account = {
+                        email,
+                        token: tokenResponse.access_token,
+                        expiresAt: Date.now() + (tokenResponse.expires_in * 1000) - 60000
+                    };
+                    googleDriveAccounts = googleDriveAccounts.filter(a => a.email !== email);
+                    googleDriveAccounts.push(account);
+                    saveDriveAccounts();
+                    logEvent(`Cuenta ${email} vinculada`, "emerald");
+                },
+                prompt: 'select_account'
+            });
+            client.requestAccessToken();
+        }
+        function showDriveAccountsModal(fileInfo) {
+            const modal = document.getElementById('drive-accounts-modal');
+            const list = document.getElementById('accounts-list');
+            list.innerHTML = '';
+            if (googleDriveAccounts.length === 0) {
+                list.innerHTML = '<p class="text-slate-400 text-sm">No hay cuentas vinculadas. Añade una primero.</p>';
+            } else {
+                googleDriveAccounts.forEach(acc => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700 cursor-pointer hover:bg-slate-700';
+                    div.innerHTML = `<span class="text-sm text-cyan-300"><i class="fa-brands fa-google mr-2"></i>${acc.email}</span><i class="fa-solid fa-chevron-right text-slate-400"></i>`;
+                    div.addEventListener('click', () => {
+                        closeModal();
+                        uploadFileToDrive(acc, fileInfo);
+                    });
+                    list.appendChild(div);
+                });
+            }
+            modal.classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('drive-accounts-modal').classList.add('hidden');
+        }
+        async function uploadFileToDrive(account, fileInfo) {
+            if (Date.now() > account.expiresAt) {
+                logEvent(`Token de ${account.email} expirado. Reconectando...`, "amber");
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: 'openid email https://www.googleapis.com/auth/drive',
+                    prompt: '',
+                    login_hint: account.email,
+                    callback: (resp) => {
+                        if (resp.error) return logEvent("Re-autenticación fallida", "red");
+                        account.token = resp.access_token;
+                        account.expiresAt = Date.now() + (resp.expires_in * 1000) - 60000;
+                        saveDriveAccounts();
+                        uploadFileToDrive(account, fileInfo);
+                    }
+                });
+                client.requestAccessToken();
+                return;
+            }
+            const metadata = {
+                name: fileInfo.filename,
+                mimeType: fileInfo.mimeType
+            };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', fileInfo.blob);
+            try {
+                const res = await fetch(DRIVE_UPLOAD_URL, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${account.token}` },
+                    body: form
+                });
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        account.expiresAt = 0;
+                        saveDriveAccounts();
+                        logEvent("Token rechazado. Inicie sesión de nuevo.", "red");
+                    } else {
+                        const err = await res.json();
+                        logEvent(`Error Drive: ${err.error.message}`, "red");
+                    }
+                    return;
+                }
+                const file = await res.json();
+                logEvent(`Archivo subido a Drive de ${account.email}: ${file.name}`, "emerald");
+            } catch (error) {
+                logEvent("Error de red al subir a Drive", "red");
+            }
+        }
+        function getMimeType(type) {
+            const mimes = {
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'cxl': 'text/xml',
+                'txt': 'text/plain',
+                'zip': 'application/zip',
+                'mcpack': 'application/zip'
+            };
+            return mimes[type] || 'application/octet-stream';
+        }
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
         }
 
         window.addEventListener('DOMContentLoaded',()=>{
             loadKeysFromStorage();
+            loadDriveAccounts();
             updateModelIndicator();
             userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+            document.getElementById('close-accounts-modal').addEventListener('click', closeModal);
+            document.getElementById('add-drive-account-btn').addEventListener('click', addNewGoogleAccount);
             logEvent("J.A.R.V.I.S. listo. Capacidad mejorada: Word, Excel, PPT, CXL, ZIP y MCPack.","cyan");
         });
     </script>
