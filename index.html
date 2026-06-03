@@ -682,8 +682,7 @@ Ahora genera el documento solicitado por el usuario.`;
         }
         function closeModal() {
             document.getElementById('drive-accounts-modal').classList.add('hidden');
-        }
-        async function uploadFileToDrive(account, fileInfo) {
+        }        async function uploadFileToDrive(account, fileInfo) {
             if (Date.now() > account.expiresAt) {
                 logEvent(`Token de ${account.email} expirado. Reconectando...`, "amber");
                 const client = google.accounts.oauth2.initTokenClient({
