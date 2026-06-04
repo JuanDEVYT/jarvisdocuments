@@ -555,9 +555,8 @@ Ahora genera el documento solicitado por el usuario.`;
             const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
             addToVault(filename, "txt", () => blob);
             logEvent(`TXT generado: ${filename}`, "emerald");
-        }
-
-        // NUEVO: Generador de ZIP / MCPACK usando JSZip        async function generateZip(data, isMcpack = false) {
+        }        // NUEVO: Generador de ZIP / MCPACK usando JSZip
+        async function generateZip(data, isMcpack = false) {
             const filename = data.filename || (isMcpack ? "pack.mcpack" : "archivo.zip");
             const files = data.files || [];
             const zip = new JSZip();
