@@ -116,8 +116,7 @@
 
             <div class="hud-panel p-4 rounded">
                 <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-regular fa-image mr-2"></i>Entrada Multimodal</h3>
-                <div id="drop-zone" class="border border-dashed border-cyan-800/80 bg-cyan-950/10 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all mt-2">
-                    <input type="file" id="image-input" accept="image/*" class="hidden" />
+                <div id="drop-zone" class="border border-dashed border-cyan-800/80 bg-cyan-950/10 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all mt-2"><input type="file" id="image-input" accept="image/*,.docx,.xlsx,.pptx,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain" class="hidden" />
                     <div id="drop-zone-content" class="text-center"><i class="fa-solid fa-cloud-arrow-up text-2xl text-cyan-400 mb-2 animate-pulse"></i><span class="text-xs text-cyan-300">Arrastra imagen o haz clic</span></div>
                     <div id="preview-container" class="hidden w-full flex-col items-center gap-2"><img id="image-preview" class="max-h-32 border border-cyan-400 rounded-md" /><button id="remove-image-btn" class="text-[11px] bg-red-950/60 border border-red-800 text-red-400 px-3 py-1 rounded"><i class="fa-solid fa-trash-can"></i> Remover</button></div>
                 </div>
@@ -168,13 +167,13 @@
                 <button id="close-accounts-modal" class="bg-slate-700 border border-slate-600 px-4 py-2 text-sm text-slate-300 rounded hover:bg-slate-600">Cancelar</button>
             </div>
         </div>
-    </div>
-
+    </div>    <script src="https://accounts.google.com/gsi/client"></script>
     <script>
         // ---------- GESTIÓN DE MÚLTIPLES API KEYS (personal storage) ----------
         let apiKeysPool = [];
-        let activeKeyIndex = 0;
-        let selectedBase64Image = null;
+        let activeKeyIndex = 0;let selectedBase64Image = null;
+let attachedFilesText = ''; // Texto extraído de archivos adjuntos
+let attachedFileNames = [];
         let chatHistory = [];
         let statistics = { requests: 0, failures: 0, filesGenerated: 0 };
         const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];        let activeModelIndex = 0;
@@ -351,47 +350,179 @@ Ahora genera el documento solicitado por el usuario.`;
             div.innerText = `[${time}] ${msg}`;
             terminalLog.appendChild(div);
             terminalLog.scrollTop = terminalLog.scrollHeight;
-        }
-
-        // Imagen
+        }        // Manejo de archivos (imagen y Office)
         dropZone.addEventListener('click',()=>imageInput.click());
         dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-active');});
         dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-active'));
-        dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-active');if(e.dataTransfer.files[0]) processImage(e.dataTransfer.files[0]);});
-        imageInput.addEventListener('change',e=>{if(e.target.files[0]) processImage(e.target.files[0]);});
-        removeImageBtn.addEventListener('click',()=>{selectedBase64Image=null;previewContainer.classList.add('hidden');dropZoneContent.classList.remove('hidden');logEvent("Imagen removida","cyan");});
+        dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-active');if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);});
+        imageInput.addEventListener('change',e=>{if(e.target.files[0]) processFile(e.target.files[0]);});
+        removeImageBtn.addEventListener('click',()=>{
+            selectedBase64Image=null;
+            attachedFilesText='';
+            attachedFileNames=[];
+            previewContainer.classList.add('hidden');
+            dropZoneContent.classList.remove('hidden');
+            // Restaurar visibilidad de img y limpiar file-info
+            if(imagePreview) imagePreview.style.display = '';
+            const infoSpan = document.getElementById('file-info');
+            if(infoSpan) infoSpan.remove();
+            logEvent("Archivo removido","cyan");
+        });
 
-        function processImage(file){
-            if(!file.type.startsWith('image/')){logEvent("Formato inválido","red");return;}
-            const reader=new FileReader();
-            reader.onload=e=>{
-                const img=new Image();
-                img.src=e.target.result;
-                img.onload=()=>{
-                    const canvas=document.createElement('canvas');
-                    let w=img.width,h=img.height; const max=1000;
-                    if(w>h){if(w>max){h*=max/w;w=max;}}else{if(h>max){w*=max/h;h=max;}}
-                    canvas.width=w;canvas.height=h;
-                    canvas.getContext('2d').drawImage(img,0,0,w,h);
-                    selectedBase64Image=canvas.toDataURL('image/jpeg',0.85);
-                    imagePreview.src=selectedBase64Image;
+        async function processFile(file){
+            const validImages = ['image/png','image/jpeg','image/gif','image/webp'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            const isImage = validImages.includes(file.type) || ['png','jpg','jpeg','gif','webp'].includes(ext);
+            const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx';
+            const isXlsx = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || ext === 'xlsx';
+            const isPptx = file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || ext === 'pptx';
+            const isTxt = file.type === 'text/plain' || ext === 'txt';
+
+            if (!isImage && !isDocx && !isXlsx && !isPptx && !isTxt) {
+                logEvent("Formato no soportado. Usa imagen, Word, Excel, PowerPoint o TXT.", "red");
+                return;
+            }
+
+            try {
+                // Limpiar adjuntos previos (solo uno a la vez)
+                selectedBase64Image = null;
+                attachedFilesText = '';
+                attachedFileNames = [];
+
+                if (isImage) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let w=img.width, h=img.height; const max=1000;
+                            if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } }
+                            canvas.width = w; canvas.height = h;
+                            canvas.getContext('2d').drawImage(img,0,0,w,h);
+                            selectedBase64Image = canvas.toDataURL('image/jpeg',0.85);
+                            imagePreview.src = selectedBase64Image;
+                            imagePreview.style.display = '';
+                            const infoSpan = document.getElementById('file-info');
+                            if(infoSpan) infoSpan.remove();
+                            dropZoneContent.classList.add('hidden');
+                            previewContainer.classList.remove('hidden');
+                            logEvent(`Imagen ${file.name} cargada`, "emerald");
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Extraer texto de Office/TXT
+                    let text = '';
+                    if (isDocx) {
+                        text = await extractTextFromDocx(file);
+                    } else if (isXlsx) {
+                        text = await extractTextFromXlsx(file);
+                    } else if (isPptx) {
+                        text = await extractTextFromPptx(file);
+                    } else if (isTxt) {
+                        text = await file.text();
+                    }
+                    attachedFilesText = text;
+                    attachedFileNames = [file.name];
+                    // Mostrar preview genérico (ícono)
                     dropZoneContent.classList.add('hidden');
                     previewContainer.classList.remove('hidden');
-                    logEvent(`Imagen ${file.name} cargada`, "emerald");
-                };
-            };
-            reader.readAsDataURL(file);
+                    imagePreview.style.display = 'none'; // ocultar img
+                    // Añadir un span con el nombre del archivo
+                    let infoSpan = document.getElementById('file-info');
+                    if (!infoSpan) {
+                        infoSpan = document.createElement('span');
+                        infoSpan.id = 'file-info';
+                        infoSpan.className = 'text-xs text-cyan-300 mt-1';
+                        previewContainer.appendChild(infoSpan);
+                    }
+                    infoSpan.innerText = `📄 ${file.name} (${(text.length/1024).toFixed(1)} KB de texto)`;
+                    logEvent(`Archivo ${file.name} cargado como texto (${text.length} caracteres)`, "emerald");
+                }
+            } catch (err) {
+                logEvent(`Error al procesar archivo: ${err.message}`, "red");
+            }
         }
 
-        promptTemplateSelect.addEventListener('change',e=>{if(e.target.value){userInput.value=e.target.value;userInput.style.height='auto';userInput.focus();}});
-        chatForm.addEventListener('submit',async(e)=>{e.preventDefault();const text=userInput.value.trim();if(!text&&!selectedBase64Image)return;userInput.value='';userInput.style.height='auto';appendMessage("user",text,selectedBase64Image);await queryAI(text,selectedBase64Image);});
+        // Extracción de texto para Office
+        async function extractTextFromDocx(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            const xml = await zip.file('word/document.xml')?.async('text');
+            if (!xml) throw new Error('No se encontró document.xml');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xml, 'text/xml');
+            const texts = doc.getElementsByTagName('w:t');
+            let result = '';
+            for (let i = 0; i < texts.length; i++) {
+                result += texts[i].textContent;
+            }
+            return result;
+        }
 
-        function appendMessage(sender,text,img=null){
+        async function extractTextFromXlsx(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+            let text = '';
+            workbook.SheetNames.forEach(name => {
+                const sheet = workbook.Sheets[name];
+                const csv = XLSX.utils.sheet_to_csv(sheet);
+                text += `[${name}]\n${csv}\n\n`;
+            });
+            return text;
+        }
+
+        async function extractTextFromPptx(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            const slideFiles = Object.keys(zip.files).filter(name => name.startsWith('ppt/slides/slide') && name.endsWith('.xml'));
+            let allText = '';
+            for (const slidePath of slideFiles) {
+                const xml = await zip.file(slidePath)?.async('text');
+                if (!xml) continue;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xml, 'text/xml');
+                const texts = doc.getElementsByTagName('a:t');
+                for (let i = 0; i < texts.length; i++) {
+                    allText += texts[i].textContent + ' ';
+                }
+                allText += '\n---\n';
+            }
+            return allText;
+        }        promptTemplateSelect.addEventListener('change',e=>{if(e.target.value){userInput.value=e.target.value;userInput.style.height='auto';userInput.focus();}});
+        chatForm.addEventListener('submit',async(e)=>{
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if(!text && !selectedBase64Image && !attachedFilesText) return;
+            // Construir prompt final incluyendo texto de archivos adjuntos
+            let finalPrompt = text || '';
+            if (attachedFilesText) {
+                const fileInfo = attachedFileNames.length ? `[Archivo adjunto: ${attachedFileNames.join(', ')}]\n` : '';
+                finalPrompt = `${fileInfo}${attachedFilesText}\n\n---\nInstrucción del usuario:\n${finalPrompt}`;
+            }
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            appendMessage("user", text, selectedBase64Image, attachedFilesText ? `Adjunto: ${attachedFileNames.join(', ')}` : null);
+            await queryAI(finalPrompt, selectedBase64Image);
+            // Limpiar adjuntos después de enviar
+            selectedBase64Image = null;
+            attachedFilesText = '';
+            attachedFileNames = [];
+            previewContainer.classList.add('hidden');
+            dropZoneContent.classList.remove('hidden');
+        });        function appendMessage(sender,text,img=null,attachmentInfo=null){
             const div=document.createElement('div');
             const isJarvis=sender==="jarvis";
             div.className=`${isJarvis?'message-jarvis':'message-user'} p-3 rounded-lg max-w-[85%] ${isJarvis?'self-start':'self-end'} flex gap-3 transition-all`;
             const avatar=isJarvis?'<div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>':'<div class="w-8 h-8 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center"><i class="fa-solid fa-user-tie text-amber-400"></i></div>';
-            let media=img?`<img src="${img}" class="max-h-32 rounded border border-cyan-500 my-1" />`:'';
+            let media='';
+            if(img){
+                media += `<img src="${img}" class="max-h-32 rounded border border-cyan-500 my-1" />`;
+            }
+            if(attachmentInfo){
+                media += `<div class="text-xs bg-slate-800 border border-slate-700 rounded px-2 py-1 inline-block mt-1"><i class="fa-solid fa-paperclip mr-1 text-cyan-400"></i>${attachmentInfo}</div>`;
+            }
             let formatted=isJarvis?formatResponse(text):text.replace(/\n/g,'<br>');
             div.innerHTML=`${isJarvis?avatar:''}<div class="flex-1"><span class="hud-font text-[10px] font-bold ${isJarvis?'text-cyan-400':'text-amber-400'}">${isJarvis?'J.A.R.V.I.S.':'Señor'}</span>${media}<div class="text-sm leading-relaxed">${formatted}</div></div>${!isJarvis?avatar:''}`;
             chatMessages.appendChild(div);
@@ -633,8 +764,11 @@ Ahora genera el documento solicitado por el usuario.`;
         }
         function saveDriveAccounts() {
             localStorage.setItem('jarvis_drive_accounts', JSON.stringify(googleDriveAccounts));
-        }
-        function addNewGoogleAccount() {
+        }        function addNewGoogleAccount() {
+            if (typeof google === 'undefined' || !google.accounts) {
+                logEvent("Google Identity Services no está disponible. Recarga la página.", "red");
+                return;
+            }
             const client = google.accounts.oauth2.initTokenClient({
                 client_id: GOOGLE_CLIENT_ID,
                 scope: 'openid email https://www.googleapis.com/auth/drive',
