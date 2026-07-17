@@ -52,6 +52,39 @@
         .drag-active { border-color: var(--jarvis-blue) !important; background: rgba(0, 240, 255, 0.1) !important; }
         @keyframes pulseGlow { 0%,100%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.08);opacity:0.5;} }
         .core-pulse { animation: pulseGlow 3s ease-in-out infinite; }
+        @keyframes rotateRing { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        @keyframes rotateRingReverse { 0%{transform:rotate(0deg);} 100%{transform:rotate(-360deg);} }
+        @keyframes scanlines { 0%{background-position:0 0;} 100%{background-position:0 3px;} }
+        @keyframes glitch { 2%,64%{transform:translate(2px,0) skew(0deg);} 4%,60%{transform:translate(-2px,0) skew(0.5deg);} 62%{transform:translate(0,0) skew(0deg);} }
+        @keyframes textFlicker { 0%,100%{opacity:1;} 41%{opacity:1;} 42%{opacity:0.3;} 43%{opacity:1;} 45%{opacity:0.6;} 46%{opacity:1;} }
+        @keyframes fadeSlideIn { 0%{opacity:0;transform:translateY(16px) scale(0.96);} 100%{opacity:1;transform:translateY(0) scale(1);} }
+        @keyframes fadeSlideOut { 0%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(10px) scale(0.96);} }
+        @keyframes breatheGlow { 0%,100%{box-shadow:0 0 8px rgba(0,240,255,0.15);} 50%{box-shadow:0 0 20px rgba(0,240,255,0.35);} }
+        @keyframes dataStream { 0%{transform:translateX(-100%);} 100%{transform:translateX(100%);} }
+        @keyframes rippleEffect { 0%{transform:scale(0);opacity:0.5;} 100%{transform:scale(4);opacity:0;} }
+        @keyframes hexAppear { 0%{opacity:0;transform:scale(0.8) rotate(10deg);} 100%{opacity:1;transform:scale(1) rotate(0);} }
+        @keyframes bounceDot { 0%,80%,100%{transform:translateY(0);} 40%{transform:translateY(-8px);} }
+        @keyframes typingPulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+        @keyframes borderTravel { 0%{background-position:0 0;} 100%{background-position:200% 0;} }
+        .animate-rotate-ring { animation: rotateRing 8s linear infinite; }
+        .animate-rotate-reverse { animation: rotateRingReverse 12s linear infinite; }
+        .animate-scanlines { animation: scanlines 0.1s linear infinite; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.015) 2px, rgba(0,240,255,0.015) 3px); background-size: 100% 3px; pointer-events: none; }
+        .animate-glitch { animation: glitch 3s infinite; }
+        .animate-flicker { animation: textFlicker 4s infinite; }
+        .animate-fade-slide { animation: fadeSlideIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+        .animate-breathe { animation: breatheGlow 3s ease-in-out infinite; }
+        .animate-hex { animation: hexAppear 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+        .btn-hover-glow { transition: all 0.25s cubic-bezier(0.16,1,0.3,1); }
+        .btn-hover-glow:hover { box-shadow: 0 0 20px rgba(0,240,255,0.3), inset 0 0 20px rgba(0,240,255,0.05); transform: translateY(-1px); }
+        .btn-hover-glow-amber:hover { box-shadow: 0 0 20px rgba(255,157,0,0.3), inset 0 0 20px rgba(255,157,0,0.05); transform: translateY(-1px); }
+        .msg-appear { animation: fadeSlideIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
+        .typing-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#00f0ff; margin:0 2px; }
+        .typing-dot:nth-child(1) { animation: bounceDot 1.2s infinite 0s; }
+        .typing-dot:nth-child(2) { animation: bounceDot 1.2s infinite 0.15s; }
+        .typing-dot:nth-child(3) { animation: bounceDot 1.2s infinite 0.3s; }
+        .stat-number { transition: all 0.3s ease; }
+        .hud-panel { transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .hud-panel:hover { border-color: rgba(0,240,255,0.45); box-shadow: 0 0 25px rgba(0,240,255,0.08); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(4,15,30,0.5); }
         ::-webkit-scrollbar-thumb { background: var(--jarvis-blue-dark); border-radius: 4px; }
@@ -60,31 +93,48 @@
         .key-badge button { background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-3 md:p-6">
+<body class="min-h-screen flex flex-col p-3 md:p-6 relative">
+    <div class="animate-scanlines fixed inset-0 z-[9999]"></div>
+    <div class="fixed inset-0 z-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 1px 1px, #00f0ff 1px, transparent 0); background-size: 40px 40px;"></div>
 
-    <header class="w-full mb-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-cyan-900/60 pb-4">
+    <header class="w-full mb-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-cyan-900/60 pb-4 relative">
+        <div class="absolute bottom-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style="opacity:0.4;"></div>
         <div class="flex items-center gap-4">
             <div class="relative w-16 h-16 flex items-center justify-center">
+                <svg class="absolute w-full h-full text-cyan-400 animate-rotate-reverse" viewBox="0 0 100 100" style="opacity:0.5;">
+                    <circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="4 8" />
+                </svg>
+                <svg class="absolute w-full h-full text-cyan-300 animate-rotate-ring" viewBox="0 0 100 100" style="opacity:0.7;">
+                    <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="2 6" />
+                </svg>
                 <svg class="absolute w-full h-full text-cyan-400 opacity-60" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="12 12" />
+                    <line x1="50" y1="8" x2="50" y2="16" stroke="currentColor" stroke-width="1.5" />
+                    <line x1="50" y1="84" x2="50" y2="92" stroke="currentColor" stroke-width="1.5" />
+                    <line x1="8" y1="50" x2="16" y2="50" stroke="currentColor" stroke-width="1.5" />
+                    <line x1="84" y1="50" x2="92" y2="50" stroke="currentColor" stroke-width="1.5" />
+                    <line x1="20" y1="20" x2="26" y2="26" stroke="currentColor" stroke-width="1" />
+                    <line x1="80" y1="80" x2="74" y2="74" stroke="currentColor" stroke-width="1" />
+                    <line x1="80" y1="20" x2="74" y2="26" stroke="currentColor" stroke-width="1" />
+                    <line x1="20" y1="80" x2="26" y2="74" stroke="currentColor" stroke-width="1" />
                 </svg>
                 <div class="w-6 h-6 rounded-full bg-cyan-400 core-pulse shadow-[0_0_15px_#00f0ff] flex items-center justify-center">
                     <div class="w-3 h-3 rounded-full bg-white"></div>
                 </div>
             </div>
             <div>
-                <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2">
-                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font">DOCUMENTS v6.0</span>
+                <h1 class="hud-font text-2xl font-black tracking-widest text-cyan-400 flex items-center gap-2 animate-glitch" style="animation-delay:5s;">
+                    J.A.R.V.I.S. <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-700 tech-font animate-flicker">DOCUMENTS v6.0</span>
                 </h1>
                 <p class="text-xs text-cyan-500 uppercase tracking-widest tech-font">Sistema Cognitivo de Automatización de Datos</p>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 tech-font text-xs text-cyan-400 bg-slate-950/80 p-2.5 rounded border border-cyan-900/50">
-            <div class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span><span>REACTOR: EN LÍNEA</span></div>
+            <div class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span><span class="animate-flicker" style="animation-duration:6s;">REACTOR: EN LÍNEA</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
             <div><i class="fa-solid fa-key"></i> API: <span id="active-key-label" class="text-amber-400">Sin claves</span></div>
             <div class="h-4 w-[1px] bg-cyan-900/60"></div>
-            <div><i class="fa-solid fa-microchip"></i> MODELO: <span id="active-model-label" class="text-white">GEMINI 2.5 FLASH</span></div>
+            <div><i class="fa-solid fa-microchip"></i> MODELO: <span id="active-model-label" class="text-white">GEMINI 3.5 FLASH</span></div>
         </div>
     </header>
 
@@ -107,8 +157,8 @@
                 <p class="text-[10px] text-cyan-500 mt-1">Una por línea. El sistema alternará automáticamente si falla una.</p>
                 <textarea id="multi-keys-input" rows="3" class="w-full mt-2 rounded px-2 py-1 text-xs font-mono" placeholder="AIzaSy...&#10;AIzaSy..."></textarea>
                 <div class="flex gap-2 mt-2">
-                    <button id="save-keys-btn" class="bg-cyan-950 border border-cyan-700 px-3 py-1 rounded text-cyan-400 hover:bg-cyan-900 text-xs"><i class="fa-regular fa-floppy-disk"></i> Guardar claves</button>
-                    <button id="clear-keys-btn" class="bg-red-950/60 border border-red-800 px-3 py-1 rounded text-red-400 hover:bg-red-900/40 text-xs"><i class="fa-solid fa-trash"></i> Limpiar</button>
+                    <button id="save-keys-btn" class="bg-cyan-950 border border-cyan-700 px-3 py-1 rounded text-cyan-400 hover:bg-cyan-900 text-xs btn-hover-glow"><i class="fa-regular fa-floppy-disk"></i> Guardar claves</button>
+                    <button id="clear-keys-btn" class="bg-red-950/60 border border-red-800 px-3 py-1 rounded text-red-400 hover:bg-red-900/40 text-xs btn-hover-glow-amber"><i class="fa-solid fa-trash"></i> Limpiar</button>
                 </div>
                 <div id="keys-status" class="text-[10px] mt-2 text-amber-400"></div>
                 <div id="keys-list" class="flex flex-wrap gap-1 mt-2"></div>
@@ -116,7 +166,7 @@
 
             <div class="hud-panel p-4 rounded">
                 <h3 class="hud-font text-sm font-bold text-cyan-400 uppercase border-b border-cyan-900/50 pb-1.5"><i class="fa-regular fa-image mr-2"></i>Entrada Multimodal</h3>
-                <div id="drop-zone" class="border border-dashed border-cyan-800/80 bg-cyan-950/10 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all mt-2"><input type="file" id="image-input" accept="image/*,.docx,.xlsx,.pptx,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain" class="hidden" />
+                <div id="drop-zone" class="border border-dashed border-cyan-800/80 bg-cyan-950/10 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all mt-2 animate-breathe" style="animation-duration:4s;"><input type="file" id="image-input" accept="image/*,.docx,.xlsx,.pptx,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain" class="hidden" />
                     <div id="drop-zone-content" class="text-center"><i class="fa-solid fa-cloud-arrow-up text-2xl text-cyan-400 mb-2 animate-pulse"></i><span class="text-xs text-cyan-300">Arrastra imagen o haz clic</span></div>
                     <div id="preview-container" class="hidden w-full flex-col items-center gap-2"><img id="image-preview" class="max-h-32 border border-cyan-400 rounded-md" /><button id="remove-image-btn" class="text-[11px] bg-red-950/60 border border-red-800 text-red-400 px-3 py-1 rounded"><i class="fa-solid fa-trash-can"></i> Remover</button></div>
                 </div>
@@ -131,9 +181,10 @@
 
         <section class="lg:col-span-8 flex flex-col gap-4">
             <div class="hud-panel rounded flex flex-col flex-1 h-[650px] lg:h-[calc(100vh-160px)]">
-                <div class="bg-slate-950/85 px-4 py-3 border-b border-cyan-900/50 flex justify-between items-center">
-                    <div class="flex items-center gap-2"><span class="relative flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-500"></span></span><span class="hud-font text-xs font-bold text-cyan-400">J.A.R.V.I.S. COGNITIVE CHAT</span></div>
-                    <select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300">
+                <div class="bg-slate-950/85 px-4 py-3 border-b border-cyan-900/50 flex justify-between items-center relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-[0.04]" style="background: linear-gradient(90deg, transparent, #00f0ff, transparent); animation: dataStream 3s ease-in-out infinite;"></div>
+                    <div class="flex items-center gap-2 relative z-10"><span class="relative flex h-3.5 w-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-500"></span></span><span class="hud-font text-xs font-bold text-cyan-400 animate-breathe">J.A.R.V.I.S. COGNITIVE CHAT</span></div>
+                    <select id="prompt-template-select" class="bg-cyan-950 border border-cyan-800 rounded px-2 py-1 text-xs text-cyan-300 btn-hover-glow">
                         <option value="">-- Acción rápida --</option>
                         <option value="Genera un informe de ventas ejecutivo en Word. El documento debe contener: título, saludo formal, sección de desempeño general (con negritas reales en las cifras), lista de puntos clave con viñetas (usando ul/li), tabla de ventas por categoría (con bordes y alineación), conclusiones y firma. Usa orientación vertical, márgenes normales, y asegúrate de que todo el texto esté dentro del cuerpo HTML, sin fragmentos CSS sueltos. Usa <strong> para negritas, <em> para énfasis, y respeta las tildes y la ñ.">Generar Informe de Ventas (Word)</option>
                         <option value="Crea un mapa conceptual del Ciclo de Desarrollo de Software (SDLC) en formato .cxl.">Mapa SDLC (CXL)</option>
@@ -143,15 +194,15 @@
                     </select>
                 </div>
                 <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-950/30">
-                    <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3">
+                    <div class="message-jarvis p-3 rounded-lg max-w-[85%] self-start flex gap-3 msg-appear">
                         <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>
-                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Sistema operativo. Configure al menos una clave API en el panel izquierdo para comenzar, de esta manera encenderá el reactor, alimentado por Gemini. (usando modelo de análisis JuandreXter)</p></div>
+                        <div><span class="hud-font text-[10px] font-bold text-cyan-400">J.A.R.V.I.S.</span><p class="text-sm">Sistema operativo. Configure al menos una clave API en el panel izquierdo para comenzar, de esta manera encenderá el reactor, alimentado por Gemini 3.5 Flash.</p></div>
                     </div>
                 </div>
-                <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between text-cyan-400 tech-font text-xs"><div><i class="fa-solid fa-circle-notch animate-spin"></i> <span id="loading-text">PROCESANDO...</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
+                <div id="loading-indicator" class="hidden px-4 py-2.5 bg-cyan-950/40 border-t border-cyan-900/50 flex justify-between items-center text-cyan-400 tech-font text-xs"><div class="flex items-center gap-2"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> <span id="loading-text">PROCESANDO</span></div><span id="loading-timer" class="text-amber-400">0.0s</span></div>
                 <form id="chat-form" class="p-3 bg-slate-950/90 border-t border-cyan-900/50 flex gap-2">
                     <textarea id="user-input" rows="1" class="flex-1 bg-slate-900/90 border border-cyan-950 rounded-lg pl-4 py-3 text-sm text-cyan-100 placeholder-cyan-700 focus:outline-none resize-none" placeholder="Ej: 'Genera un paquete de recursos .mcpack con un shader de tono cálido'"></textarea>
-                    <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button type="submit" class="h-11 w-11 rounded-lg bg-cyan-950 border border-cyan-700 hover:bg-cyan-900 text-cyan-400 btn-hover-glow"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
@@ -176,7 +227,7 @@ let attachedFilesText = ''; // Texto extraído de archivos adjuntos
 let attachedFileNames = [];
         let chatHistory = [];
         let statistics = { requests: 0, failures: 0, filesGenerated: 0 };
-        const MODELS_POOL = ["gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025"];        let activeModelIndex = 0;
+        const MODELS_POOL = ["gemini-3.5-flash", "gemini-3.1-flash-lite"];        let activeModelIndex = 0;
         const GOOGLE_CLIENT_ID = '575864646951-7ip16ncdk7q6f4r7bif1s59d5mn0vq4b.apps.googleusercontent.com';
         const DRIVE_UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
         let googleDriveAccounts = [];
@@ -273,7 +324,7 @@ let attachedFileNames = [];
 
         function rotateApiKey() {
             statistics.failures++;
-            document.getElementById('stat-failures').innerText = statistics.failures;
+            animateNumber(document.getElementById('stat-failures'), statistics.failures);
             if (apiKeysPool.length === 0) {
                 logEvent("No hay claves disponibles para rotar.", "red");
                 return false;
@@ -285,38 +336,34 @@ let attachedFileNames = [];
             return true;
         }
 
-        // SYSTEM PROMPT MEJORADO: ahora incluye ZIP y MCPACK
-        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de IA. Debes generar documentos usando etiquetas específicas. Para cada tipo, usa estas marcas:
+        // SYSTEM PROMPT MEJORADO: contexto de conversación + nombre de archivo + ZIP/MCPACK
+        const SYSTEM_PROMPT = `Eres J.A.R.V.I.S., asistente de IA. Mantén coherencia en la conversación: recuerda lo dicho antes, responde de forma consistente con el contexto del historial, y no cambies de tema o formato abruptamente.
 
-- WORD (.docx): [START-WORD] ... HTML ... [END-WORD]
-- EXCEL (.xlsx): [START-EXCEL] ... JSON con sheetName, headers, rows ... [END-EXCEL]
-- POWERPOINT (.pptx): [START-PPT] ... JSON con presentationTitle, slides ... [END-PPT]
-- MAPA CXL: [START-CXL] ... JSON con concepts, linkingPhrases, connections (con coordenadas x,y) ... [END-CXL]
-- TXT: [START-TXT filename="..."] ... texto ... [END-TXT]
-- ZIP / MCPACK: [START-ZIP] o [START-MCPACK] ... JSON con estructura:
-  {
-    "filename": "nombre_del_archivo.zip",   // o .mcpack
-    "files": [
-      { "path": "pack.mcmeta", "content": "{\"pack\":{\"pack_format\":9,\"description\":\"Mi shader\"}}" },
-      { "path": "shaders/core/rendertype_solid.vsh", "content": "// vertex shader code" },
-      { "path": "textures/block/stone.png", "content": "data:image/png;base64,iVBORw0KGgo..." }
-    ]
-  }
-  El contenido puede ser texto plano o una cadena base64 con prefijo "data:...;base64,". El sistema empaquetará los archivos en un ZIP descargable.
-  Para MCPACK, simplemente se renombra la extensión a .mcpack (es un ZIP estándar).
-- Las imágenes en base64 (del usuario) pueden ser incluidas en el ZIP.
+Genera documentos usando etiquetas específicas. Puedes elegir el nombre del archivo incluyendo el campo "filename" dentro del JSON de cada formato.
+
+FORMATOS:
+
+1. WORD (.docx): [START-WORD] ... HTML completo ... [END-WORD]
+2. EXCEL (.xlsx): [START-EXCEL] {"filename":"...", "sheetName":"...", "headers":[...], "rows":[[...],...]} [END-EXCEL]
+3. POWERPOINT (.pptx): [START-PPT] {"filename":"...", "presentationTitle":"...", "slides":[{title, bullets},...]} [END-PPT]
+4. MAPA CXL (.cxl): [START-CXL] {"filename":"...", "title":"...", "concepts":[{id, label},...], "linkingPhrases":[{id, label},...], "connections":[{from, to},...]} [END-CXL]
+   El sistema POSICIONA automáticamente los conceptos (NO necesitas enviar coordenadas x,y. Solo envía id, label).
+5. TXT: [START-TXT filename="..."] texto [END-TXT]
+6. ZIP / MCPACK: [START-ZIP] o [START-MCPACK] {"filename":"...", "files":[{path, content},...]} [END-ZIP]
 
 REGLAS:
-- Para EXCEL/PPT/CXL sigue los ejemplos previos.
-- Para ZIP: especifica la ruta completa y el contenido. Si es binario, usa base64.
+- Si no incluyes "filename", el sistema usará un nombre por defecto.
+- Para CXL: NO incluyas x,y en los conceptos, el sistema los posiciona solo.
+- Para ZIP: si el contenido es binario usa "data:...;base64,...".
+- Mantén el contexto: si el usuario modifica o corrige algo, responde acorde a la conversación previa.
 - No agregues texto fuera de las etiquetas.
 
-Ejemplo ZIP:
-[START-ZIP]
-{"filename":"shader_pack.zip","files":[{"path":"pack.mcmeta","content":"{\"pack\":{\"pack_format\":9,\"description\":\"Shader personalizado\"}}"},{"path":"shaders/core/rendertype_solid.vsh","content":"#version 150\nvoid main(){gl_Position=ftransform();}"}]}
-[END-ZIP]
+Ejemplo CXL (correcto):
+[START-CXL]
+{"title":"Tipos de Conflictos","concepts":[{"id":"c1","label":"Conflictos"},{"id":"c2","label":"Intrapersonal"}],"linkingPhrases":[{"id":"lp1","label":"se clasifican por"}],"connections":[{"from":"c1","to":"lp1"},{"from":"lp1","to":"c2"}]}
+[END-CXL]
 
-Ahora genera el documento solicitado por el usuario.`;
+Ahora genera el documento solicitado.`;
 
         // Elementos DOM
         const statRequests = document.getElementById('stat-requests');
@@ -341,8 +388,27 @@ Ahora genera el documento solicitado por el usuario.`;
         const userInput = document.getElementById('user-input');
         const activeModelLabel = document.getElementById('active-model-label');
 
-        function updateModelIndicator() { activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' '); }
+        function updateModelIndicator() {
+            activeModelLabel.innerText = MODELS_POOL[activeModelIndex].toUpperCase().replace(/-/g,' ');
+            activeModelLabel.style.transition = 'all 0.3s';
+            activeModelLabel.style.color = '#00f0ff';
+            setTimeout(() => { activeModelLabel.style.color = ''; }, 300);
+        }
 
+        function animateNumber(el, target, suffix='') {
+            const start = parseInt(el.innerText) || 0;
+            const duration = 600;
+            const startTime = performance.now();
+            function tick(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(start + (target - start) * eased);
+                el.innerText = current + suffix;
+                if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
         function logEvent(msg, color="cyan") { 
             const time = new Date().toTimeString().slice(0,8);
             const div = document.createElement('div');
@@ -514,7 +580,7 @@ Ahora genera el documento solicitado por el usuario.`;
         });        function appendMessage(sender,text,img=null,attachmentInfo=null){
             const div=document.createElement('div');
             const isJarvis=sender==="jarvis";
-            div.className=`${isJarvis?'message-jarvis':'message-user'} p-3 rounded-lg max-w-[85%] ${isJarvis?'self-start':'self-end'} flex gap-3 transition-all`;
+            div.className=`${isJarvis?'message-jarvis':'message-user'} p-3 rounded-lg max-w-[85%] ${isJarvis?'self-start':'self-end'} flex gap-3 msg-appear`;
             const avatar=isJarvis?'<div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-700 flex items-center justify-center"><i class="fa-solid fa-robot text-cyan-400"></i></div>':'<div class="w-8 h-8 rounded-full bg-amber-950/80 border border-amber-700 flex items-center justify-center"><i class="fa-solid fa-user-tie text-amber-400"></i></div>';
             let media='';
             if(img){
@@ -530,7 +596,7 @@ Ahora genera el documento solicitado por el usuario.`;
         }
 
         function formatResponse(t){
-            let r = t.replace(/\[START-WORD\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
+            let r = t.replace(/\[START-WORD(?:\s+filename="[^"]*")?\][\s\S]*?\[END-WORD\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-regular fa-file-word"></i> Documento Word generado</div>')
                       .replace(/\[START-EXCEL\][\s\S]*?\[END-EXCEL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-emerald-400 my-1"><i class="fa-regular fa-file-excel"></i> Hoja Excel generada</div>')
                       .replace(/\[START-PPT\][\s\S]*?\[END-PPT\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-orange-400 my-1"><i class="fa-regular fa-file-powerpoint"></i> Presentación PPT generada</div>')
                       .replace(/\[START-CXL\][\s\S]*?\[END-CXL\]/g, '<div class="text-xs bg-slate-800 p-1 border-l-2 border-cyan-400 my-1"><i class="fa-solid fa-diagram-project"></i> Mapa CXL generado</div>')
@@ -544,16 +610,17 @@ Ahora genera el documento solicitado por el usuario.`;
         async function queryAI(prompt, imageBase64, retry=0){
             if (apiKeysPool.length === 0) {
                 appendMessage("jarvis","Señor, no hay claves API configuradas. Agregue al menos una en el panel izquierdo.");
-                loadingIndicator.classList.add('hidden');
+                loadingIndicator.classList.add('hidden'); loadingText.style.animation = '';
                 return;
             }
             const currentKeyIndex = activeKeyIndex >= 0 ? activeKeyIndex : 0;
             const key = apiKeysPool[currentKeyIndex];
             if (!key) { rotateApiKey(); return queryAI(prompt, imageBase64, retry); }
             const model = MODELS_POOL[activeModelIndex];
-            statistics.requests++; statRequests.innerText=statistics.requests;
+            statistics.requests++; animateNumber(statRequests, statistics.requests);
             loadingIndicator.classList.remove('hidden');
             loadingText.innerText=imageBase64?`MULTIMODAL ${model.toUpperCase()}`:`CONECTANDO ${model.toUpperCase()}`;
+            loadingText.style.animation = 'typingPulse 1.2s ease-in-out infinite';
             let start=performance.now();
             let elapsed=0; const timer=setInterval(()=>{elapsed+=0.1;loadingTimer.innerText=elapsed.toFixed(1)+"s";},100);
             try{
@@ -565,29 +632,52 @@ Ahora genera el documento solicitado por el usuario.`;
                     parts.push({inlineData:{mimeType:mime,data:pure}});
                 } else parts.push({text:prompt});
                 
-                const context=chatHistory.slice(-6).map(m=>({role:m.sender==="jarvis"?"model":"user",parts:[{text:m.text}]}));
+                const context=chatHistory.slice(-20).map(m=>({role:m.sender==="jarvis"?"model":"user",parts:[{text:m.text}]}));
                 const body={contents:[...context,{role:"user",parts}],systemInstruction:{parts:[{text:SYSTEM_PROMPT}]}};
                 const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
                 clearInterval(timer);
-                statLatency.innerText=`${Math.round(performance.now()-start)}ms`;
+                animateNumber(statLatency, Math.round(performance.now()-start), 'ms');
                 
                 if (res.status === 400 || res.status === 401 || res.status === 403) {
                     const errData = await res.json();
-                    if (errData.error && (errData.error.message.includes("API key") || errData.error.message.includes("expired") || errData.error.message.includes("invalid"))) {
+                    const errMsg = errData?.error?.message || '';
+                    if (errMsg.includes("API key") || errMsg.includes("expired") || errMsg.includes("invalid")) {
                         logEvent(`Clave ${currentKeyIndex+1} inválida/expirada. Rotando...`, "red");
                         const rotated = rotateApiKey();
                         if (rotated) return queryAI(prompt, imageBase64, retry+1);
-                        else { loadingIndicator.classList.add('hidden'); appendMessage("jarvis","Señor, todas las claves han fallado. Por favor, agregue nuevas claves."); return; }
+                        else { loadingIndicator.classList.add('hidden'); loadingText.style.animation = ''; appendMessage("jarvis","Señor, todas las claves han fallado. Por favor, agregue nuevas claves."); return; }
                     }
-                    throw new Error(`HTTP ${res.status}`);
+                    if (errMsg.includes("image input") || errMsg.includes("image.png") || errMsg.includes("multimodal")) {
+                        loadingIndicator.classList.add('hidden'); loadingText.style.animation = '';
+                        appendMessage("jarvis","Señor, el modelo activo no admite entrada de imágenes. Usando solo el texto del mensaje.");
+                        logEvent(`Modelo ${model} no soporta imágenes. Reintentando sin imagen.`, "amber");
+                        return queryAI(prompt, null, retry+1);
+                    }
+                    throw new Error(errMsg || `HTTP ${res.status}`);
                 }
-                if(res.status===404 && activeModelIndex<MODELS_POOL.length-1){activeModelIndex++;updateModelIndicator();logEvent(`Cambio a modelo ${MODELS_POOL[activeModelIndex]}`, "amber");return queryAI(prompt,imageBase64,retry);}
+                if(res.status===404){
+                    if (retry < MODELS_POOL.length) {
+                        activeModelIndex = (activeModelIndex + 1) % MODELS_POOL.length;
+                        updateModelIndicator();
+                        logEvent(`Modelo no disponible. Cambio a ${MODELS_POOL[activeModelIndex]}`, "amber");
+                        return queryAI(prompt, imageBase64, retry+1);
+                    }
+                    const errData = await res.json().catch(()=>({}));
+                    const reason = errData?.error?.message || '';
+                    throw new Error(reason || `HTTP ${res.status}`);
+                }
                 if(!res.ok)throw new Error(`HTTP ${res.status}`);
                 const data=await res.json();
+                if (data.promptFeedback?.blockReason) {
+                    logEvent(`Bloqueado por seguridad: ${data.promptFeedback.blockReason}`, "red");
+                    if (imageBase64) { loadingIndicator.classList.add('hidden'); loadingText.style.animation = ''; appendMessage("jarvis","Señor, la imagen fue bloqueada por las políticas de seguridad del modelo."); return; }
+                    throw new Error(`Bloqueado: ${data.promptFeedback.blockReason}`);
+                }
                 let reply=data.candidates?.[0]?.content?.parts?.[0]?.text;
                 if(!reply)throw new Error("Respuesta vacía");
                 reply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 loadingIndicator.classList.add('hidden');
+                loadingText.style.animation = '';
                 chatHistory.push({sender:"user",text:prompt},{sender:"jarvis",text:reply});
                 appendMessage("jarvis",reply);
                 parseAndGenerateFiles(reply);
@@ -598,9 +688,13 @@ Ahora genera el documento solicitado por el usuario.`;
                     logEvent("Cuota excedida para esta clave. Rotando...", "amber");
                     const rotated = rotateApiKey();
                     if (rotated) setTimeout(()=>queryAI(prompt,imageBase64,retry+1), 2000);
-                    else { loadingIndicator.classList.add('hidden'); appendMessage("jarvis","Señor, todas las claves excedieron su cuota. Espere o agregue nuevas."); }
+                    else { loadingIndicator.classList.add('hidden'); loadingText.style.animation = ''; appendMessage("jarvis","Señor, todas las claves excedieron su cuota. Espere o agregue nuevas."); }
+                } else if (err.message.includes('no longer available') || err.message.includes('not found') || err.message.includes('does not support')) {
+                    loadingIndicator.classList.add('hidden'); loadingText.style.animation = '';
+                    appendMessage("jarvis","Señor, el modelo actual no está disponible. Cambie a otro modelo en la configuración o actualice la página.");
+                    logEvent(`Error de modelo: ${err.message}`,"red");
                 } else {
-                    loadingIndicator.classList.add('hidden');
+                    loadingIndicator.classList.add('hidden'); loadingText.style.animation = '';
                     appendMessage("jarvis","Señor, error en la comunicación. Verifique sus claves o intente más tarde.");
                     logEvent(`Error: ${err.message}`,"red");
                 }
@@ -608,9 +702,10 @@ Ahora genera el documento solicitado por el usuario.`;
         }
 
         function parseAndGenerateFiles(text){
-            // WORD
-            const wordMatch = text.match(/\[START-WORD\]([\s\S]*?)\[END-WORD\]/);
-            if(wordMatch) generateWord(wordMatch[1].trim());
+            // WORD (con filename opcional)
+            const wordRegex = /\[START-WORD(?:\s+filename="([^"]*)")?\]([\s\S]*?)\[END-WORD\]/;
+            const wordMatch = text.match(wordRegex);
+            if(wordMatch) generateWord(wordMatch[2].trim(), wordMatch[1] || null);
             // EXCEL
             const excelMatch = text.match(/\[START-EXCEL\]([\s\S]*?)\[END-EXCEL\]/);
             if(excelMatch) {
@@ -640,10 +735,10 @@ Ahora genera el documento solicitado por el usuario.`;
             if(mcpackMatch) {
                 try { generateZip(JSON.parse(mcpackMatch[1].trim()), true); } catch(e) { logEvent(`Error MCPACK: ${e.message}`, "red"); }
             }
-        }        // --- Generadores existentes ---
-        function generateWord(htmlString){
-            if(!htmlString.includes('<!DOCTYPE html>')) htmlString = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>${htmlString}</body></html>`;
-            const filename = `documento_${Date.now()}.docx`;
+        }        // --- Generadores con soporte de filename ---
+        function generateWord(htmlString, userFilename){
+            if(!htmlString.includes('<!DOCTYPE html>')) htmlString = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Documento</title><style>@page { size: A4 portrait; margin: 2.54cm; } body{font-family:Calibri;}</style></head><body>' + htmlString + '<' + '/body><' + '/html>';
+            const filename = userFilename ? userFilename.replace(/\.docx$/,'') + '.docx' : `documento_${Date.now()}.docx`;
             const blob = window.htmlDocx.asBlob(htmlString);
             addToVault(filename, "docx", () => blob);
             logEvent(`Word generado: ${filename}`, "emerald");
@@ -655,7 +750,7 @@ Ahora genera el documento solicitado por el usuario.`;
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            const filename = `${sheetName.toLowerCase().replace(/\s/g,'_')}_${Date.now()}.xlsx`;
+            const filename = data.filename ? data.filename.replace(/\.xlsx$/,'') + '.xlsx' : `${sheetName.toLowerCase().replace(/\s/g,'_')}_${Date.now()}.xlsx`;
             const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
             const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
             addToVault(filename, "xlsx", () => blob);
@@ -667,21 +762,168 @@ Ahora genera el documento solicitado por el usuario.`;
                 const slide = pptx.addSlide(); slide.addText(s.title, {x:0.5,y:0.4,fontSize:24,bold:true,color:'00f0ff'});
                 slide.addText((s.bullets || []).join('\n'), {x:0.8,y:1.4,w:'84%',h:4.0,fontSize:15,bullet:true});
             });
-            const filename = `presentacion_${Date.now()}.pptx`;
+            const filename = data.filename ? data.filename.replace(/\.pptx$/,'') + '.pptx' : `presentacion_${Date.now()}.pptx`;
             pptx.write({ outputType: 'blob' }).then(blob => {
                 addToVault(filename, "pptx", () => blob);
                 logEvent(`PPT generado: ${filename}`, "emerald");
             });
-        }        function generateCXL(data){
-            const title = data.title || "Mapa";
-            const concepts = data.concepts || [];
-            const phrases = data.linkingPhrases || [];
-            const conns = data.connections || [];
-            let xml = `<?xml version="1.0" encoding="UTF-8"?><cmap xmlns="http://cmap.ihmc.us/xml/cmap/"><res-meta><dc:title>${escapeXml(title)}</dc:title></res-meta><map><concept-list>${concepts.map(c=>`<concept id="${escapeXml(c.id)}" label="${escapeXml(c.label)}"/>`).join('')}</concept-list><linking-phrase-list>${phrases.map(p=>`<linking-phrase id="${escapeXml(p.id)}" label="${escapeXml(p.label)}"/>`).join('')}</linking-phrase-list><connection-list>${conns.map((c,i)=>`<connection id="conn_${i}" from-id="${escapeXml(c.from)}" to-id="${escapeXml(c.to)}"/>`).join('')}</connection-list><concept-appearance-list>${concepts.map((c,i)=>`<concept-appearance id="${escapeXml(c.id)}" x="${c.x||200}" y="${c.y||150}" width="130" height="40" background-color="230,240,255,255"/>`).join('')}</concept-appearance-list></map></cmap>`;
-            const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g,'_')}_${Date.now()}.cxl`;
-            const blob = new Blob([xml], {type:"text/xml;charset=utf-8"});
-            addToVault(filename, "cxl", () => blob);
-            logEvent(`CXL generado: ${filename}`, "emerald");
+        }        function esc(s) { return escapeXml(s); }
+        function labelW(l) { if (!l) return 80; var lines=l.split('\n'); var m=0; for(var i=0;i<lines.length;i++) if(lines[i].length>m)m=lines[i].length; return Math.max(m*7+10,80); }
+
+        function generateCXL(data){
+            var title = data.title || "Mapa";
+            var filename = data.filename || title.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now() + '.cxl';
+            var concepts = data.concepts || [];
+            var phrases = data.linkingPhrases || [];
+            var conns = data.connections || [];
+
+            var pos = {};
+            var lpPos = {};
+            var hasExplicit = concepts.length > 0 && concepts[0].x !== undefined;
+
+            if (!hasExplicit) {
+                // --- Auto tree layout (same algorithm as debugged gen_cxl7.js) ---
+                var lpIds = {}, conIds = {};
+                phrases.forEach(function(p){ lpIds[p.id] = true; });
+                concepts.forEach(function(c){ conIds[c.id] = true; });
+
+                // Build adjacency
+                var inEdges = {}, outEdges = {};
+                conns.forEach(function(cn){
+                    if (!outEdges[cn.from]) outEdges[cn.from] = [];
+                    outEdges[cn.from].push(cn.to);
+                    if (!inEdges[cn.to]) inEdges[cn.to] = [];
+                    inEdges[cn.to].push(cn.from);
+                });
+
+                // Find root: concept with no incoming from other concepts
+                var root = concepts[0] && concepts[0].id;
+                for (var ci=0; ci<concepts.length; ci++) {
+                    var cid = concepts[ci].id;
+                    if (!inEdges[cid] || inEdges[cid].length === 0) { root = cid; break; }
+                }
+
+                // Top-level LPs (connected from root)
+                var rootLPs = (outEdges[root] || []).filter(function(id){ return lpIds[id]; });
+
+                // Groups: each root LP -> its children (filter out LPs)
+                var groups = [];
+                rootLPs.forEach(function(lp){
+                    var kids = (outEdges[lp] || []).filter(function(id){ return conIds[id]; });
+                    if (kids.length) groups.push({lp: lp, children: kids});
+                });
+
+                // For each child, find its example sub-tree (child -> LP -> example concept)
+                var examples = {};
+                concepts.forEach(function(c){
+                    if (c.id === root) return;
+                    if (lpIds[c.id]) return;
+                    var childOut = (outEdges[c.id] || []).filter(function(id){ return lpIds[id]; });
+                    if (childOut.length) {
+                        var exLP = childOut[0];
+                        var exCon = (outEdges[exLP] || []).filter(function(id){ return conIds[id]; });
+                        if (exCon.length) examples[c.id] = {lp: exLP, ex: exCon[0]};
+                    }
+                });
+
+                // Compute widths
+                function getLabel(id) { for (var i=0;i<concepts.length;i++) if(concepts[i].id===id) return concepts[i].label; return id; }
+
+                var GAP = 15, GAP_G = 50, Y_ROOT = 20, Y_LP = 80, Y_ROW = 200, Y_EX = 380;
+
+                // Layout each group
+                var cx = 0;
+                for (var gi=0; gi<groups.length; gi++) {
+                    var grp = groups[gi], kids = grp.children, gSum = 0;
+                    for (var j=0; j<kids.length; j++) {
+                        var w = labelW(getLabel(kids[j]));
+                        var x = Math.round(cx + w/2);
+                        pos[kids[j]] = {x: x, y: Y_ROW};
+                        gSum += x;
+                        cx += w + GAP;
+                    }
+                    lpPos[grp.lp] = {x: Math.round(gSum / kids.length), y: Y_LP};
+                    cx += GAP_G - GAP;
+                }
+
+                // Root at center of LP group centers
+                var lpSum = 0, lpCount = 0;
+                rootLPs.forEach(function(lp){ if (lpPos[lp]) { lpSum += lpPos[lp].x; lpCount++; } });
+                pos[root] = {x: Math.round(lpSum / Math.max(lpCount,1)), y: Y_ROOT};
+
+                // Shift so min X >= 50
+                var minX = Infinity;
+                for (var id in pos) if (pos[id].x < minX) minX = pos[id].x;
+                var shift = 50 - minX;
+                for (var id in pos) pos[id].x += shift;
+                for (var id in lpPos) lpPos[id].x += shift;
+
+                // Examples below parents
+                var yLpEx = Math.round((Y_ROW + Y_EX) / 2);
+                for (var childId in examples) {
+                    if (pos[childId]) {
+                        var pX = pos[childId].x;
+                        pos[examples[childId].ex] = {x: pX, y: Y_EX};
+                        lpPos[examples[childId].lp] = {x: pX, y: yLpEx};
+                    }
+                }
+                // Handle LPs without position (unconnected)
+                phrases.forEach(function(p){
+                    if (!lpPos[p.id]) lpPos[p.id] = {x: 100, y: 100};
+                });
+            } else {
+                // Use explicit positions from AI
+                concepts.forEach(function(c){ pos[c.id] = {x: c.x, y: c.y}; });
+                phrases.forEach(function(p){
+                    // Estimate LP position near its connections
+                    var targets = [];
+                    conns.forEach(function(cn){
+                        if (cn.from === p.id) targets.push(cn.to);
+                        if (cn.to === p.id) targets.push(cn.from);
+                    });
+                    var sumX = 0, sumY = 0, count = 0;
+                    targets.forEach(function(tid){
+                        if (pos[tid]) { sumX += pos[tid].x; sumY += pos[tid].y; count++; }
+                    });
+                    if (count) lpPos[p.id] = {x: Math.round(sumX/count), y: Math.round(sumY/count)};
+                    else lpPos[p.id] = {x: 100, y: 100};
+                });
+            }
+
+            // Build XML
+            var xml = '<?xml version="1.0" encoding="UTF-8"?>';
+            xml += '<cmap xmlns="http://cmap.ihmc.us/xml/cmap/" xmlns:dc="http://purl.org/dc/elements/1.1/">';
+            xml += '<res-meta><dc:title>' + esc(title) + '</dc:title><dc:description/></res-meta>';
+            xml += '<map>';
+            xml += '<concept-list>';
+            for (var i = 0; i < concepts.length; i++)
+                xml += '<concept id="' + esc(concepts[i].id) + '" label="' + esc(concepts[i].label) + '"/>';
+            xml += '</concept-list>';
+            xml += '<linking-phrase-list>';
+            for (var j = 0; j < phrases.length; j++)
+                xml += '<linking-phrase id="' + esc(phrases[j].id) + '" label="' + esc(phrases[j].label) + '"/>';
+            xml += '</linking-phrase-list>';
+            xml += '<connection-list>';
+            for (var k = 0; k < conns.length; k++)
+                xml += '<connection from-id="' + esc(conns[k].from) + '" to-id="' + esc(conns[k].to) + '"/>';
+            xml += '</connection-list>';
+            xml += '<concept-appearance-list>';
+            for (var n = 0; n < concepts.length; n++) {
+                var p = pos[concepts[n].id] || {x: 73 + n*80, y: 56 + n*60};
+                xml += '<concept-appearance id="' + esc(concepts[n].id) + '" x="' + Math.round(p.x) + '" y="' + Math.round(p.y) + '"/>';
+            }
+            xml += '</concept-appearance-list>';
+            xml += '<linking-phrase-appearance-list>';
+            for (var m = 0; m < phrases.length; m++) {
+                var pp = lpPos[phrases[m].id] || {x: 100 + m*60, y: 100};
+                xml += '<linking-phrase-appearance id="' + esc(phrases[m].id) + '" x="' + Math.round(pp.x) + '" y="' + Math.round(pp.y) + '"/>';
+            }
+            xml += '</linking-phrase-appearance-list>';
+            xml += '</map></cmap>';
+
+            var blob = new Blob([xml], {type:"text/xml;charset=utf-8"});
+            addToVault(filename, "cxl", function() { return blob; });
+            logEvent('CXL generado: ' + filename, "emerald");
         }        function generateTXT(filename,content){
             const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
             addToVault(filename, "txt", () => blob);
@@ -713,10 +955,10 @@ Ahora genera el documento solicitado por el usuario.`;
         }
 
         function escapeXml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m==='&') return '&amp;'; if (m==='<') return '&lt;'; if (m==='>') return '&gt;'; return m; }); }        function addToVault(filename, type, getBlobFn){
-            statistics.filesGenerated++; statFiles.innerText = statistics.filesGenerated;
+            statistics.filesGenerated++; animateNumber(statFiles, statistics.filesGenerated);
             vaultEmptyState.classList.add('hidden'); vaultList.classList.remove('hidden');
             const row = document.createElement('div');
-            row.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950 relative";
+            row.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-cyan-950 relative animate-hex";
             let icon = "fa-file-lines";
             if (type === 'docx') icon = "fa-file-word text-cyan-400";
             else if (type === 'xlsx') icon = "fa-file-excel text-emerald-400";
@@ -890,7 +1132,20 @@ Ahora genera el documento solicitado por el usuario.`;
             userInput.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
             document.getElementById('close-accounts-modal').addEventListener('click', closeModal);
             document.getElementById('add-drive-account-btn').addEventListener('click', addNewGoogleAccount);
-            logEvent("J.A.R.V.I.S. listo. Capacidad mejorada: Word, Excel, PPT, CXL, ZIP y MCPack.","cyan");
+            // Ripple effect on buttons
+            document.querySelectorAll('button:not(.remove-key)').forEach(btn => {
+                btn.style.position = 'relative';
+                btn.style.overflow = 'hidden';
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const ripple = document.createElement('span');
+                    const size = Math.max(rect.width, rect.height);
+                    ripple.style.cssText = `position:absolute;border-radius:50%;background:rgba(0,240,255,0.3);width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;animation:rippleEffect 0.6s ease-out forwards;pointer-events:none;`;
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+            logEvent("J.A.R.V.I.S. listo. Capacidad: Word, Excel, PPT, CXL (auto-layout), ZIP, MCPack. Contexto de conversación activo.","cyan");
         });
     </script>
 </body>
